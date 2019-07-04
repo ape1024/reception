@@ -183,6 +183,7 @@ import detailsTrains from './homepage-unit/detailsTrains'
 import trainConductor from './homepage-unit/trainConductor'
 import keyPassengers from './homepage-unit/keyPassengers'
 import { projectMixin } from '../../common/js/mixin'
+import { waitingRooms } from '../../api/url'
 export default {
   //  变更站台,后台说没有记录,,,
   name: 'homepage',
@@ -249,7 +250,7 @@ export default {
     },
     //  获取数据
     getData () {
-      this.axios.post(`http://172.16.6.38:8090/run/waitingRooms`).then((response) => {
+      this.axios.post(waitingRooms()).then((response) => {
         console.log(response.data.data)
         let switchBoer = false
         response.data.data.forEach((val, index) => {
