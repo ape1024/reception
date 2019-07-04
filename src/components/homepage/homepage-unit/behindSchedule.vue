@@ -26,8 +26,7 @@
         <el-table-column
           prop="address"
           label="发晚点"
-          width="100"
-          :formatter="formatter">
+          width="100">
         </el-table-column>
       </el-table>
     </div>

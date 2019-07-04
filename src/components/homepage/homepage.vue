@@ -20,7 +20,7 @@
             <ul class="homepage-condition-state">
               <li class="homepage-condition-state-li">
                 <!--重点-->
-                <img @click="imgFn" class="homepage-condition-state-img" src="../../common/img/keynote.png" alt="">
+                <img class="homepage-condition-state-img" src="../../common/img/keynote.png" alt="">
                 <div class="homepage-condition-state-input">
                   <el-input
                     size="mini"
@@ -75,7 +75,7 @@
                   prop="cheCi"
                   label="车次">
                   <template slot-scope="scope">
-                    <span @click="spanFn" class="span">{{scope.row.cheCi}}</span>
+                    <span @click="spanFn" :class="cheCimodule(scope.row.trainType)">{{scope.row.cheCi}}</span>
                   </template>
                 </el-table-column>
                 <el-table-column
@@ -94,11 +94,11 @@
                 <el-table-column
                   label="图定到发">
                   <template slot-scope="scope">
-                    <div v-if="scope.row.sendTrain">
-                      <span>{{scope.row.planFaCheTimeData}}</span>
+                    <div v-if="scope.row.difference" @click="differenceFn">
+                      <span class="differenceColor">{{scope.row.regulationsData}}</span><span class="red">{{scope.row.difference}}</span>
                     </div>
-                    <div v-if="!scope.row.sendTrain">
-                      <span>{{scope.row.planDaoDaTimeData}}</span>
+                    <div v-if="!scope.row.difference">
+                      <span>{{scope.row.regulationsData}}</span>
                     </div>
                   </template>
                 </el-table-column>
@@ -106,18 +106,15 @@
                 <el-table-column
                   label="实际到发">
                   <template slot-scope="scope">
-                    <div v-if="scope.row.sendTrain">
-                      <span>{{scope.row.realFaCheTimeData}}</span>
-                    </div>
-                    <div v-if="!scope.row.sendTrain">
-                      <span>{{scope.row.realDaoDaTimeData}}</span>
+                    <div>
+                      <span>{{scope.row.actualData}}</span>
                     </div>
                   </template>
                 </el-table-column>
                 <el-table-column
                   label="列车详情">
                   <template slot-scope="scope">
-                    <div>
+                    <div class="blue" @click="trainDetailsFn">
                       {{scope.row.trainDetails}}
                     </div>
                   </template>
@@ -134,7 +131,7 @@
                   prop="trainMaster"
                   label="列车长">
                   <template slot-scope="scope">
-                    <div>
+                    <div class="blue" @click="trainMasterFn">
                       {{scope.row.trainMaster}}
                     </div>
                   </template>
@@ -148,17 +145,15 @@
                   label="下车人数">
                 </el-table-column>
                 <el-table-column
-                  prop="transferNum"
+                  prop="transformNum"
                   label="中转人数">
                 </el-table-column>
                 <el-table-column
-                  prop="zdlkzs"
                   label="重点旅客总数">
                   <template slot-scope="scope">
-                    <span @click="spanFn" class="span">{{scope.row.keyCustomerAccount}}</span>
+                    <span @click="keyCustomerAccountFn" class="blue">{{scope.row.keyCustomerAccount}}</span>
                   </template>
                 </el-table-column>
-
               </el-table>
             </div>
           </div>
@@ -189,6 +184,7 @@ import trainConductor from './homepage-unit/trainConductor'
 import keyPassengers from './homepage-unit/keyPassengers'
 import { projectMixin } from '../../common/js/mixin'
 export default {
+  //  变更站台,后台说没有记录,,,
   name: 'homepage',
   mixins: [projectMixin],
   data () {
@@ -199,6 +195,7 @@ export default {
       wheelchair: 0,
       stretcher: 0,
       tableData: [],
+      rollingIndex: '',
       popupSwitch: false,
       behindSwitch: false,
       platformSwitch: false,
@@ -215,12 +212,6 @@ export default {
     keyPassengers
   },
   methods: {
-    imgFn () {
-      console.log(this.tableData)
-      console.log(this.tableData.length)
-      console.log(this.$refs.table.bodyWrapper.firstChild.clientHeight)
-      this.$refs.table.bodyWrapper.scrollTop = (this.$refs.table.bodyWrapper.firstChild.clientHeight / this.tableData.length) * (10 - 1)
-    },
     spanFn () {
     },
     homepageClick () {
@@ -247,38 +238,125 @@ export default {
       this.trainSwitch = false
       this.passengersSwitch = false
     },
+    cheCimodule (trainType) {
+      if (trainType === 1) {
+        return `green`
+      } else if (trainType === 2) {
+        return `bluColor`
+      } else {
+        return `violet`
+      }
+    },
     //  获取数据
     getData () {
       this.axios.post(`http://172.16.6.38:8090/run/waitingRooms`).then((response) => {
         console.log(response.data.data)
-        response.data.data.forEach((val) => {
-          val.dateData = this.fmtDate(val.date)
-          val.planDaoDaTimeData = this.fmtDate(val.planDaoDaTime)
-          val.planFaCheTimeData = this.fmtDate(val.planFaCheTime)
-          val.realDaoDaTimeData = this.fmtDate(val.realDaoDaTime)
-          val.realFaCheTimeData = this.fmtDate(val.realFaCheTime)
-          let keynoteNumder = val.keyCustomers ? parseInt(val.keyCustomers) : 0
-          let wheelchairNumder = val.wheelchair ? parseInt(val.wheelchair) : 0
-          let stretcherNumder = val.stretcher ? parseInt(val.stretcher) : 0
-          this.keynote += keynoteNumder
-          this.wheelchair += wheelchairNumder
-          this.stretcher += stretcherNumder
+        let switchBoer = false
+        response.data.data.forEach((val, index) => {
+          val.dateData = this.fmtDate(val.date, 1)
+          //  sendTrain 为true 发车车次   false 到达车次
+          if (val.sendTrain === 1 || val.sendTrain === 3) {
+            //  regulationsData
+            val.regulationsData = this.fmtDate(val.planFaCheTime, 2)
+            //  actualData
+            val.actualData = this.fmtDate(val.realFaCheTime, 2)
+            val.difference = this.difference(val.planFaCheTime, val.realFaCheTime)
+          } else {
+            val.regulationsData = this.fmtDate(val.planDaoDaTime, 2)
+            val.actualData = this.fmtDate(val.realDaoDaTime, 2)
+            val.difference = this.difference(val.planDaoDaTime, val.realDaoDaTime)
+          }
+          //  判断当前时间戳是否为今日
+          if (this.isToday(val.date)) {
+            // console.log(index)
+            let keynoteNumder = val.keyCustomers ? parseInt(val.keyCustomers) : 0
+            let wheelchairNumder = val.wheelchair ? parseInt(val.wheelchair) : 0
+            let stretcherNumder = val.stretcher ? parseInt(val.stretcher) : 0
+            this.keynote += keynoteNumder
+            this.wheelchair += wheelchairNumder
+            this.stretcher += stretcherNumder
+            //  拿到今日 第一个值 将滚动条 滚到其对应索引位置
+            if (!switchBoer) {
+              this.rollingIndex = index
+              switchBoer = true
+            }
+          }
         })
         this.tableData = response.data.data
       })
     },
-    fmtDate (obj) {
-      let date = new Date(obj)
-      // let y = 1900 + date.getYear()
-      let m = `0` + (date.getMonth() + 1)
-      let d = `0` + date.getDate()
-      return m.substring(m.length - 2, m.length) + `-` + d.substring(d.length - 2, d.length)
+    //  判断时间戳是否为今日
+    isToday (str) {
+      let timestamp = this.fmtDate((new Date()).getTime(), 1)
+      let strData = this.fmtDate(str, 1)
+      if (timestamp === strData) {
+        return true
+      } else {
+        return false
+      }
+    },
+    fmtDate (timestamp, Identification) {
+      if (timestamp) {
+        let time = new Date(timestamp)
+        // let y = time.getFullYear()
+        let M = (time.getMonth() + 1) > 10 ? (time.getMonth() + 1) : `0${(time.getMonth() + 1)}`
+        let d = (time.getDate()) > 10 ? (time.getDate()) : `0${(time.getDate())}`
+        let h = (time.getHours()) > 10 ? time.getHours() : `0${time.getHours()}`
+        let m = (time.getMinutes()) > 10 ? time.getMinutes() : `0${time.getMinutes()}`
+        // let s = time.getSeconds()
+        if (Identification === 1) {
+          return `${M} - ${d}`
+        } else if (Identification === 2) {
+          return h + ':' + m
+        } else {
+          return `${M}月 ${d}日`
+        }
+      }
+    },
+    difference (a, b) {
+      let c = ''
+      if (a !== b) {
+        c = parseInt((b - a) / 1000 / 60)
+        c = c > 0 ? `+${c}` : c
+        return c
+      } else {
+        return ''
+      }
+    },
+    //  滚动位置
+    rolling (index) {
+      this.$refs.table.bodyWrapper.scrollTop = (this.$refs.table.bodyWrapper.firstChild.clientHeight / this.tableData.length) * (index)
+    },
+    trainDetailsFn () {
+      this.popupSwitch = true
+      this.detailsSwitch = true
+    },
+    trainMasterFn () {
+      this.popupSwitch = true
+      this.trainSwitch = true
+    },
+    keyCustomerAccountFn () {
+      this.popupSwitch = true
+      this.passengersSwitch = true
+    },
+    differenceFn () {
+      this.popupSwitch = true
+      this.behindSwitch = true
     }
+  },
+  watch: {
+    rollingIndex (data) {
+      this.rolling(data)
+    }
+  },
+  updated () {
+    this.rolling(this.rollingIndex)
   },
   created () {
     //  本地校验token
     this.checktoKen()
     this.getData()
+    //  获取今日事件
   }
 }
 </script>
@@ -428,4 +506,21 @@ export default {
     height 50px
   .noData
     background #ccc!important
+  .blue
+    cursor pointer
+    text-decoration underline
+    color $color-blue
+  .red
+    color $color-red
+    cursor pointer
+    text-decoration underline
+  .green
+    color $color-green
+  .violet
+    color $color-Violet
+  .bluColor
+    color $color-blue
+  .differenceColor
+    cursor pointer
+    text-decoration underline
 </style>
