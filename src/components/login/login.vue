@@ -10,9 +10,9 @@
         </div>
       </div>
      <div class="button">
-       <el-button size="medium" @click="login" type="primary" round>登录</el-button>
+       <el-button size="medium" @click="login" type="primary" round>{{loginText}}</el-button>
      </div>
-    </div>
+  </div>
   </div>
 </template>
 
@@ -25,7 +25,8 @@ export default {
   data () {
     return {
       accountNumber: '',
-      password: ''
+      password: '',
+      loginText: ''
     }
   },
   methods: {
@@ -51,6 +52,7 @@ export default {
   created () {
     //  本地校验token
     this.checktoKen()
+    this.loginText = '登录'
   }
 }
 </script>

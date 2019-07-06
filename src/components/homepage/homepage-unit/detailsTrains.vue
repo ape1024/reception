@@ -1,15 +1,15 @@
 <template>
   <div class="detailsTrains" @click.stop>
     <h4 class="detailsTrains-title">
-      列车详情
+      {{detailsTrainsTitle}}
     </h4>
     <ul class="detailsTrains-subject">
-      <li class="detailsTrains-subject-li">车型:</li>
-      <li class="detailsTrains-subject-li">是否重连:</li>
-      <li class="detailsTrains-subject-li">编组方向:</li>
-      <li class="detailsTrains-subject-li">编组数:</li>
-      <li class="detailsTrains-subject-li">立折车次:</li>
-      <li class="detailsTrains-subject-li">接续车次:</li>
+      <li class="detailsTrains-subject-li">{{vehicle}}</li>
+      <li class="detailsTrains-subject-li">{{reconnect}}</li>
+      <li class="detailsTrains-subject-li">{{marshalling}}</li>
+      <li class="detailsTrains-subject-li">{{groupings}}</li>
+      <li class="detailsTrains-subject-li">{{folding}}</li>
+      <li class="detailsTrains-subject-li"></li>
     </ul>
     <img @click="close" class="close" src="../../../common/img/close.png" alt="">
   </div>
@@ -18,10 +18,30 @@
 <script>
 export default {
   name: 'detailsTrains',
+  data () {
+    return {
+      detailsTrainsTitle: '',
+      vehicle: '',
+      reconnect: '',
+      marshalling: '',
+      groupings: '',
+      folding: '',
+      continuous: ''
+    }
+  },
   methods: {
     close () {
       this.$emit('close')
     }
+  },
+  created () {
+    this.detailsTrainsTitle = '列车详情'
+    this.vehicle = '车型: '
+    this.reconnect = '是否重连: '
+    this.marshalling = '编组方向: '
+    this.groupings = '编组数: '
+    this.folding = '立折车次: '
+    this.continuous = '接续车次: '
   }
 }
 </script>

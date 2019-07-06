@@ -1,7 +1,7 @@
 <template>
   <div class="keyPassengers" @click.stop>
     <h4 class="keyPassengers-title">
-      重点旅客
+      {{keyPassengersTitle}}
     </h4>
     <div class="keyPassengers-subject">
       <ul class="homepage-condition-state">
@@ -9,32 +9,36 @@
           <!--重点-->
           <img class="homepage-condition-state-img" src="../../../common/img/keynote.png" alt="">
           <div class="homepage-condition-state-input">
-            <el-input-number size="mini" v-model="keynote"></el-input-number>
+            <el-input-number size="small" v-model="keynote"></el-input-number>
           </div>
         </li>
         <li class="homepage-condition-state-li">
           <!--轮椅-->
-          <img class="homepage-condition-state-img" src="../../../common/img/keynote.png" alt="">
+          <img class="homepage-condition-state-img" src="../../../common/img/wheelchair.png" alt="">
           <div class="homepage-condition-state-input">
-            <el-input-number size="mini" v-model="wheelchair"></el-input-number>
+            <el-input-number size="small" v-model="wheelchair"></el-input-number>
           </div>
         </li>
         <li class="homepage-condition-state-li">
           <!--担架-->
-          <img class="homepage-condition-state-img" src="../../../common/img/keynote.png" alt="">
+          <img class="homepage-condition-state-img" src="../../../common/img/stretcher.png" alt="">
           <div class="homepage-condition-state-input">
-            <el-input-number size="mini" v-model="stretcher"></el-input-number>
+            <el-input-number size="small" v-model="stretcher"></el-input-number>
           </div>
+        </li>
+        <li class="homepage-condition-state-li homepage-condition-state-right">
+          <el-button size="small" type="info" disabled>{{scanning}}</el-button>
+          <el-button size="small" type="primary" @click="addLine">{{increase}}</el-button>
         </li>
       </ul>
       <div class="homepage-buttons">
         <div class="homepage-buttons-div">
-          <el-button size="small" type="info" disabled>扫码增加</el-button>
-          <el-button size="small" type="primary" @click="addLine">手动增加</el-button>
         </div>
       </div>
       <div class="keyPassengers-body">
         <el-table
+          :header-cell-style="{background:'#3c4761',color:'#fff'}"
+          border
           height="360"
           :data="tableData"
           style="width: 100%">
@@ -99,8 +103,8 @@
         </el-table>
       </div>
       <div class="passengersButton">
-        <el-button size="medium" type="primary" @click="save">保存</el-button>
-        <el-button size="medium" type="info" @click="close">关闭</el-button>
+        <el-button size="medium" type="primary" @click="save">{{saveTxt}}</el-button>
+        <el-button @click="close" size="medium" plain>{{closeText}}</el-button>
       </div>
     </div>
   </div>
@@ -114,14 +118,29 @@ export default {
       keynote: '',
       wheelchair: '',
       stretcher: '',
+      keyPassengersTitle: '',
       tableData: [{
         bookname: '',
         bookbuytime: '',
         bookbuyer: '',
         bookborrower: '',
-        bookvolume: ''
+        bookvolume: '',
+        scanning: '',
+        increase: '',
+        saveTxt: '',
+        closeText: ''
       }],
-      options: [{label: '轮椅旅客', value: 1}]
+      options: [
+        {label: '老年旅客', value: '老年旅客'},
+        {label: '担架旅客', value: '担架旅客'},
+        {label: '轮椅旅客', value: '轮椅旅客'},
+        {label: '盲人旅客', value: '盲人旅客'},
+        {label: '孕妇旅客', value: '孕妇旅客'},
+        {label: '婴幼儿旅客', value: '婴幼儿旅客'},
+        {label: '病患旅客', value: '病患旅客'},
+        {label: '护送器官旅客', value: '护送器官旅客'},
+        {label: '特殊需求旅客', value: '特殊需求旅客'},
+        {label: '其他', value: '其他'}]
     }
   },
   methods: {
@@ -146,6 +165,13 @@ export default {
     close () {
       this.$emit('close')
     }
+  },
+  created () {
+    this.keyPassengersTitle = '重点旅客'
+    this.scanning = '扫码增加'
+    this.increase = '手动增加'
+    this.saveTxt = '保存'
+    this.closeText = '关闭'
   }
 }
 </script>
@@ -159,7 +185,7 @@ export default {
     margin -300px 0 0 -600px
     padding 20px
     overflow hidden
-    background #fff
+    background #5a6379
     width 1160px
     .keyPassengers-title
       unitTitle()
@@ -174,7 +200,7 @@ export default {
       .homepage-condition-state-li
         float left
         overflow hidden
-        width 33%
+        width 25%
         .homepage-condition-state-img
           display inline-block
           margin-right 20px
@@ -201,4 +227,7 @@ export default {
     overflow hidden
     margin-top 10px
     width 100%
+  .homepage-condition-state-right
+     text-align right
+     margin-top 6px
 </style>

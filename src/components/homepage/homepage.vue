@@ -2,16 +2,16 @@
   <div class="homepage" @click="homepageClick">
     <div class="homepage-div">
       <h4 class="homepage-title">
-        北京西站12306服务台
+        {{homepageTitle}}
       </h4>
       <div class="homepage-subject">
         <div class="homepage-condition">
           <div class="homepage-condition-left">
            <div class="homepage-input">
-             <el-input clearable size="mini" v-model="search" placeholder="请输入内容"></el-input>
+             <el-input clearable size="small" v-model="search" placeholder="请输入内容"></el-input>
            </div>
             <div class="homepage-search">
-              <el-button size="mini" type="primary">搜索</el-button>
+              <el-button @click="searchFn" size="small" type="primary">{{searchText}}</el-button>
             </div>
           </div>
           <div class="homepage-condition-right">
@@ -23,7 +23,7 @@
                 <img class="homepage-condition-state-img" src="../../common/img/keynote.png" alt="">
                 <div class="homepage-condition-state-input">
                   <el-input
-                    size="mini"
+                    size="small"
                     placeholder=""
                     v-model="keynote"
                     :disabled="true">
@@ -35,7 +35,7 @@
                 <img class="homepage-condition-state-img" src="../../common/img/wheelchair.png" alt="">
                 <div class="homepage-condition-state-input">
                   <el-input
-                    size="mini"
+                    size="small"
                     placeholder=""
                     v-model="wheelchair"
                     :disabled="true">
@@ -47,7 +47,7 @@
                 <img class="homepage-condition-state-img" src="../../common/img/stretcher.png" alt="">
                 <div class="homepage-condition-state-input">
                   <el-input
-                    size="mini"
+                    size="small"
                     placeholder=""
                     v-model="stretcher"
                     :disabled="true">
@@ -61,10 +61,11 @@
           <div class="homepage-table">
             <div class="homepage-table-body">
               <el-table
+                :header-cell-style="{background:'#3c4761',color:'#fff'}"
+                :cell-class-name="changeCellStyle"
                 ref='table'
                 :data="tableData"
                 height="500"
-                row-class-name="tableRow"
                 border
                 style="width: 100%">
                 <el-table-column
@@ -191,18 +192,24 @@ export default {
   data () {
     return {
       search: '',
-      month: '6月19日',
+      month: this.fmtDate((new Date()).getTime(), 3),
       keynote: 0,
       wheelchair: 0,
       stretcher: 0,
       tableData: [],
       rollingIndex: '',
+      homepageTitle: '',
+      searchText: '',
       popupSwitch: false,
       behindSwitch: false,
       platformSwitch: false,
       detailsSwitch: false,
       trainSwitch: false,
-      passengersSwitch: false
+      passengersSwitch: false,
+      //  打开弹窗 禁止去请求数据
+      getDataSwitch: true,
+      //  滚动条值 数组
+      searchSwitch: true
     }
   },
   components: {
@@ -213,6 +220,57 @@ export default {
     keyPassengers
   },
   methods: {
+    changeCellStyle (row, column, rowIndex, columnIndex) {
+      // console.log(row)
+      //  车次
+      if (!row.row.cheCi && row.columnIndex === 1) {
+        return `warning`
+      }
+      //  候车室
+      if (!row.row.waitingRoom && row.columnIndex === 2) {
+        return `warning`
+      }
+      //  站台
+      if (!row.row.platform && row.columnIndex === 3) {
+        return `warning`
+      }
+      //  图定到发
+      if (!row.row.regulationsData && row.columnIndex === 4) {
+        return `warning`
+      }
+      //  实际到发
+      if (!row.row.actualData && row.columnIndex === 5) {
+        return `warning`
+      }
+      //  列车详情
+      if (!row.row.trainDetails && row.columnIndex === 6) {
+        return `warning`
+      }
+      //  重点车
+      if (!row.row.keyTrain && row.columnIndex === 7) {
+        return `warning`
+      }
+      //  列车长
+      if (!row.row.trainMaster && row.columnIndex === 8) {
+        return `warning`
+      }
+      //  上车人数
+      if (!row.row.on && row.columnIndex === 9) {
+        return `warning`
+      }
+      //  下车人数
+      if (!row.row.off && row.columnIndex === 10) {
+        return `warning`
+      }
+      //  中转人数
+      if (!row.row.transformNum && row.columnIndex === 11) {
+        return `warning`
+      }
+      //  重点旅客总数
+      if (!row.row.keyCustomerAccount && row.columnIndex === 12) {
+        return `warning`
+      }
+    },
     spanFn () {
     },
     homepageClick () {
@@ -248,11 +306,20 @@ export default {
         return `violet`
       }
     },
+    // 搜索
+    searchFn () {
+      //  this.searchSwitch
+    },
     //  获取数据
     getData () {
+      console.log('....')
       this.axios.post(waitingRooms()).then((response) => {
         console.log(response.data.data)
         let switchBoer = false
+        let time = new Date().getTime()
+        this.keynote = 0
+        this.wheelchair = 0
+        this.stretcher = 0
         response.data.data.forEach((val, index) => {
           val.dateData = this.fmtDate(val.date, 1)
           //  sendTrain 为true 发车车次   false 到达车次
@@ -268,6 +335,7 @@ export default {
             val.difference = this.difference(val.planDaoDaTime, val.realDaoDaTime)
           }
           //  判断当前时间戳是否为今日
+
           if (this.isToday(val.date)) {
             // console.log(index)
             let keynoteNumder = val.keyCustomers ? parseInt(val.keyCustomers) : 0
@@ -283,6 +351,7 @@ export default {
             }
           }
         })
+        console.log('take time : ' + (new Date().getTime() - time) + 'ms')
         this.tableData = response.data.data
       })
     },
@@ -300,10 +369,10 @@ export default {
       if (timestamp) {
         let time = new Date(timestamp)
         // let y = time.getFullYear()
-        let M = (time.getMonth() + 1) > 10 ? (time.getMonth() + 1) : `0${(time.getMonth() + 1)}`
-        let d = (time.getDate()) > 10 ? (time.getDate()) : `0${(time.getDate())}`
-        let h = (time.getHours()) > 10 ? time.getHours() : `0${time.getHours()}`
-        let m = (time.getMinutes()) > 10 ? time.getMinutes() : `0${time.getMinutes()}`
+        let M = (time.getMonth() + 1) >= 10 ? (time.getMonth() + 1) : `0${(time.getMonth() + 1)}`
+        let d = (time.getDate()) >= 10 ? (time.getDate()) : `0${(time.getDate())}`
+        let h = (time.getHours()) >= 10 ? time.getHours() : `0${time.getHours()}`
+        let m = (time.getMinutes()) >= 10 ? time.getMinutes() : `0${time.getMinutes()}`
         // let s = time.getSeconds()
         if (Identification === 1) {
           return `${M} - ${d}`
@@ -327,6 +396,7 @@ export default {
     //  滚动位置
     rolling (index) {
       this.$refs.table.bodyWrapper.scrollTop = (this.$refs.table.bodyWrapper.firstChild.clientHeight / this.tableData.length) * (index)
+      //  clearInterval(this.intervalFnD)
     },
     trainDetailsFn () {
       this.popupSwitch = true
@@ -343,21 +413,71 @@ export default {
     differenceFn () {
       this.popupSwitch = true
       this.behindSwitch = true
+    },
+    intervalFn () {
+      // clearInterval()
+      setInterval(() => {
+        if (this.getDataSwitch && this.searchSwitch) {
+          //  再这里将 scrollTop 存入 scrollSwitch中
+          // this.scrollSwitch.push(this.$refs.table.bodyWrapper.scrollTop)
+          this.getData()
+        }
+        // clearInterval(time)
+      }, 60000)
+    },
+    arryIf (res) {
+      if (this.scrollSwitch.length) {
+        if (this.scrollSwitch.length < 5) {
+          this.scrollSwitch.forEach((val) => {
+            if (val === res) {
+              this.scrollSwitch.push(res)
+              return true
+            } else {
+              this.scrollSwitch = []
+              this.scrollSwitch.push(res)
+              return false
+            }
+          })
+        } else {
+          this.scrollSwitch = []
+          this.scrollSwitch.push(res)
+          return true
+        }
+      } else {
+        this.scrollSwitch.push(res)
+        return true
+      }
     }
   },
   watch: {
     rollingIndex (data) {
       this.rolling(data)
+    },
+    popupSwitch (data) {
+      if (data) {
+        this.getDataSwitch = false
+      } else {
+        this.getDataSwitch = true
+      }
     }
   },
   updated () {
     this.rolling(this.rollingIndex)
+    //  列表滚动 事件
+    // this.$refs.table.bodyWrapper.addEventListener('scroll', (res) => {
+    //   if (this.arryIf(res.timeStamp)) {
+    //
+    //   }
+    //   console.log(res.timeStamp)
+    // }, true)
   },
   created () {
     //  本地校验token
-    this.checktoKen()
+    // this.checktoKen()
     this.getData()
-    //  获取今日事件
+    this.intervalFn()
+    this.homepageTitle = '北京西站12306服务台'
+    this.searchText = '搜索'
   }
 }
 </script>
@@ -367,16 +487,17 @@ export default {
   .homepage
     height 100%
     width 100%
+    background #5a6379
     position relative
     overflow hidden
     .homepage-div
       overflow hidden
-      margin 100px 0
       width 100%
       .homepage-title
         font-weight bold
+        color #fff
         text-align center
-        font-size 36px
+        font-size 24px
       .homepage-subject
         overflow hidden
         position relative
@@ -399,16 +520,17 @@ export default {
             box-sizing border-box
             width 50%
           .homepage-search
-            float right
+            float left
             text-align center
             box-sizing border-box
-            width 50%
+            width 20%
         .homepage-condition-right
           overflow hidden
           display flex
           min-width 600px
           width 100%
           .homepage-condition-month
+            color #fff
             margin-right 20px
             width 100px
             font-weight bold
@@ -418,14 +540,15 @@ export default {
             overflow hidden
           .homepage-condition-state-li
             float left
+            text-align right
             overflow hidden
             width 33%
             .homepage-condition-state-img
               display inline-block
               margin-right 20px
               vertical-align middle
-              height 48px
-              width 48px
+              height 40px
+              width 40px
             .homepage-condition-state-input
               display inline-block
               width 100px
@@ -497,12 +620,12 @@ export default {
     top 0
     left 0
     overflow hidden
-    background rgba(000,000,000,.2)
+    background rgba(000,000,000,.4)
     height 100%
     width 100%
     z-index 111
   .span
-    color red
+    color $color-Red
   .tableRow
     height 50px
   .noData
@@ -510,7 +633,7 @@ export default {
   .blue
     cursor pointer
     text-decoration underline
-    color $color-blue
+    color $color-Biao
   .red
     color $color-red
     cursor pointer
@@ -524,4 +647,29 @@ export default {
   .differenceColor
     cursor pointer
     text-decoration underline
+</style>
+<style>
+  .el-table .warning {
+    background: #7e889f!important;
+  }
+  .el-table th, .el-table tr {
+    background-color: #636e8a;
+  }
+  .el-table--enable-row-hover .el-table__body tr:hover>td{
+    background-color: #9099b1;
+  }
+  .el-table td, .el-table th.is-leaf {
+    border-color: #5a6379!important;
+  }
+  .el-table--border, .el-table--group {
+    background-color: #4e5870;
+    border: none;
+  }
+  .el-table .cell {
+    color: #fff;
+    text-align: center;
+  }
+  .el-table--border::after, .el-table--group::after, .el-table::before {
+    background-color: transparent;
+  }
 </style>

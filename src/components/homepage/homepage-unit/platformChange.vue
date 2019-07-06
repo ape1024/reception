@@ -1,7 +1,7 @@
 <template>
   <div class="behindSchedule" @click.stop>
     <h4 class="behindSchedule-title">
-      站台变更
+      {{behindScheduleTitle}}
     </h4>
     <div class="behindSchedule-subject">
       <el-table
@@ -29,6 +29,7 @@ export default {
   name: 'platformChange',
   data () {
     return {
+      behindScheduleTitle: '',
       tableData: [{
         date: '2016-05-02',
         name: '王小虎',
@@ -52,6 +53,9 @@ export default {
     close () {
       this.$emit('close')
     }
+  },
+  created () {
+    this.behindScheduleTitle = '站台变更'
   }
 }
 </script>
