@@ -2,7 +2,7 @@
   <div class="homepage" @click="homepageClick">
     <div class="homepage-div">
       <h4 class="homepage-title">
-        {{homepageTitle}}
+        {{homepageTitle}}1
       </h4>
       <div class="homepage-subject">
         <div class="homepage-condition">
