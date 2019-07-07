@@ -1,7 +1,7 @@
 <template>
   <div class="behindSchedule" @click.stop>
     <h4 class="behindSchedule-title">
-      {{behindScheduleTitle}}
+      {{rowCheCi}}{{behindScheduleTitle}}
     </h4>
     <div class="behindSchedule-subject">
       <el-table
@@ -9,13 +9,13 @@
         style="width: 100%"
       >
         <el-table-column
-          prop="date"
+          prop="operateTime"
           label="时间"
           width="150">
         </el-table-column>
         <el-table-column
-          prop="name"
-          label="到晚点"
+          prop="areaName"
+          label="站台"
           width="150">
         </el-table-column>
       </el-table>
@@ -27,35 +27,46 @@
 <script>
 export default {
   name: 'platformChange',
+  props: ['platformData', 'rowCheCi'],
   data () {
     return {
       behindScheduleTitle: '',
-      tableData: [{
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄'
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1519 弄'
-      }, {
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1516 弄'
-      }]
+      tableData: []
     }
   },
   methods: {
     close () {
       this.$emit('close')
+    },
+    fmtDate (timestamp, Identification) {
+      if (timestamp) {
+        let time = new Date(timestamp)
+        // let y = time.getFullYear()
+        let M = (time.getMonth() + 1) >= 10 ? (time.getMonth() + 1) : `0${(time.getMonth() + 1)}`
+        let d = (time.getDate()) >= 10 ? (time.getDate()) : `0${(time.getDate())}`
+        let h = (time.getHours()) >= 10 ? time.getHours() : `0${time.getHours()}`
+        let m = (time.getMinutes()) >= 10 ? time.getMinutes() : `0${time.getMinutes()}`
+        // let s = time.getSeconds()
+        if (Identification === 1) {
+          return `${M} - ${d}`
+        } else if (Identification === 2) {
+          return h + ':' + m
+        } else {
+          return `${M}月 ${d}日`
+        }
+      }
     }
   },
   created () {
     this.behindScheduleTitle = '站台变更'
+    this.platformData.forEach((val) => {
+      let obj = {
+        areaName: val.areaName,
+        operateTime: this.fmtDate(val.operateTime, 2)
+      }
+      this.tableData.push(obj)
+    })
+    console.log(this.tableData)
   }
 }
 </script>
@@ -67,19 +78,14 @@ export default {
     top 50%
     left 50%
     margin -300px 0 0 -170px
-    height 560px
-    background #fff
+    overflow hidden
+    border-radius 6px
+    background #4e5870
     width 300px
-    padding 20px
     .behindSchedule-title
       unitTitle()
     .behindSchedule-subject
       overflow hidden
-      width 100%
   .close
-    position absolute
-    top 20px
-    right 20px
-    height 30px
-    width 30px
+    close()
 </style>

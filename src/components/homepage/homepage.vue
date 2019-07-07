@@ -59,7 +59,7 @@
         </div>
         <div class="homepage-content">
           <div class="homepage-table">
-            <div class="homepage-table-body">
+            <div class="homepage-table-body" @mouseleave="changeCellleave" @mouseenter="changeCellenter">
               <el-table
                 :header-cell-style="{background:'#3c4761',color:'#fff'}"
                 :cell-class-name="changeCellStyle"
@@ -80,14 +80,17 @@
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="waitingRoom"
+                  prop="waiting"
                   label="候车室">
                 </el-table-column>
                 <el-table-column
                   label="站台">
                   <template slot-scope="scope">
-                    <div :class="{noData: !scope.row.platform}">
-                      {{scope.row.platform}}
+                    <div @click="platformFn(scope.row)" v-if="scope.row.ztHistoryNum" :class="{ noData: scope.row.ztHistoryNum }">
+                      {{scope.row.zt}}
+                    </div>
+                    <div v-if="!scope.row.ztHistoryNum">
+                      {{scope.row.zt}}
                     </div>
                   </template>
                 </el-table-column>
@@ -115,8 +118,8 @@
                 <el-table-column
                   label="列车详情">
                   <template slot-scope="scope">
-                    <div class="blue" @click="trainDetailsFn">
-                      {{scope.row.trainDetails}}
+                    <div class="blue" @click="trainDetailsFn(scope.row)">
+                      {{scope.row.cheXiang}}{{scope.row.cheXu}}
                     </div>
                   </template>
                 </el-table-column>
@@ -124,7 +127,7 @@
                   label="重点车">
                   <template slot-scope="scope">
                     <div>
-                      {{scope.row.keyTrain}}
+                      {{scope.row.zhongdian}}
                     </div>
                   </template>
                 </el-table-column>
@@ -132,27 +135,27 @@
                   prop="trainMaster"
                   label="列车长">
                   <template slot-scope="scope">
-                    <div class="blue" @click="trainMasterFn">
-                      {{scope.row.trainMaster}}
+                    <div class="blue" >
+                      <span class="blueSpan" @click="trainMasterFn(scope.row, item)" :key="index" v-for="(item, index) in scope.row.lczInfoData">{{item}}</span>
                     </div>
                   </template>
                 </el-table-column>
                 <el-table-column
-                  prop="on"
+                  prop="totalArriveNum"
                   label="上车人数">
                 </el-table-column>
                 <el-table-column
-                  prop="off"
+                  prop="totalDepartNum"
                   label="下车人数">
                 </el-table-column>
                 <el-table-column
-                  prop="transformNum"
+                  prop="totalTransferNum"
                   label="中转人数">
                 </el-table-column>
                 <el-table-column
                   label="重点旅客总数">
                   <template slot-scope="scope">
-                    <span @click="keyCustomerAccountFn" class="blue">{{scope.row.keyCustomerAccount}}</span>
+                    <span @click="keyCustomerAccountFn(scope.row)" class="blue">{{scope.row.zdlkNum}}</span>
                   </template>
                 </el-table-column>
               </el-table>
@@ -164,15 +167,15 @@
     <!--弹窗-->
     <div v-if="popupSwitch" class="popupWindow" @click="popupWindowClose">
       <!--晚点历史数据-->
-      <behindSchedule v-if="behindSwitch" @close="closeFn"></behindSchedule>
+      <behindSchedule  v-if="behindSwitch" @close="closeFn"></behindSchedule>
       <!--站台变更-->
-      <platformChange v-if="platformSwitch" @close="closeFn"></platformChange>
+      <platformChange :rowCheCi="rowCheCi" :platformData="platformData" v-if="platformSwitch" @close="closeFn"></platformChange>
       <!--列车详情-->
-      <detailsTrains v-if="detailsSwitch" @close="closeFn"></detailsTrains>
+      <detailsTrains :rowCheCi="rowCheCi" :trainDetailsData="trainDetailsData" v-if="detailsSwitch" @close="closeFn"></detailsTrains>
       <!--列车长-->
-      <trainConductor v-if="trainSwitch" @close="closeFn"></trainConductor>
+      <trainConductor :rowCheCi="rowCheCi" :trainMasterData="trainMasterData" v-if="trainSwitch" @close="closeFn"></trainConductor>
       <!--重点旅客-->
-      <keyPassengers v-if="passengersSwitch" @close="closeFn"></keyPassengers>
+      <keyPassengers :passengersrunId="passengersrunId" :passengersData="passengersData" v-if="passengersSwitch" @close="closeFn" @keyupdate="updateFn"></keyPassengers>
     </div>
   </div>
 </template>
@@ -184,9 +187,8 @@ import detailsTrains from './homepage-unit/detailsTrains'
 import trainConductor from './homepage-unit/trainConductor'
 import keyPassengers from './homepage-unit/keyPassengers'
 import { projectMixin } from '../../common/js/mixin'
-import { waitingRooms } from '../../api/url'
+import { waitingRooms, waitingRoom, findCurrentDayZdlkInfo, findTrainInfo, findZtHistoryInfo, findzdlkInfo } from '../../api/url'
 export default {
-  //  变更站台,后台说没有记录,,,
   name: 'homepage',
   mixins: [projectMixin],
   data () {
@@ -197,19 +199,31 @@ export default {
       wheelchair: 0,
       stretcher: 0,
       tableData: [],
+      trainDetailsData: [],
+      platformData: [],
+      passengersData: '',
       rollingIndex: '',
       homepageTitle: '',
       searchText: '',
+      updatedSwitch: true,
       popupSwitch: false,
       behindSwitch: false,
       platformSwitch: false,
       detailsSwitch: false,
       trainSwitch: false,
       passengersSwitch: false,
+      trainMasterData: '',
       //  打开弹窗 禁止去请求数据
       getDataSwitch: true,
       //  滚动条值 数组
-      searchSwitch: true
+      searchSwitch: true,
+      differenceValueArry: {
+        value: 0,
+        index: 0
+      },
+      rowCheCi: '',
+      moveOut: true,
+      passengersrunId: {}
     }
   },
   components: {
@@ -227,11 +241,11 @@ export default {
         return `warning`
       }
       //  候车室
-      if (!row.row.waitingRoom && row.columnIndex === 2) {
+      if (!row.row.waiting && row.columnIndex === 2) {
         return `warning`
       }
       //  站台
-      if (!row.row.platform && row.columnIndex === 3) {
+      if (!row.row.zt && row.columnIndex === 3) {
         return `warning`
       }
       //  图定到发
@@ -243,33 +257,33 @@ export default {
         return `warning`
       }
       //  列车详情
-      if (!row.row.trainDetails && row.columnIndex === 6) {
+      if (!row.row.cheXiang && row.columnIndex === 6) {
         return `warning`
       }
       //  重点车
-      if (!row.row.keyTrain && row.columnIndex === 7) {
+      if (!row.row.zhongdian && row.columnIndex === 7) {
         return `warning`
       }
       //  列车长
-      if (!row.row.trainMaster && row.columnIndex === 8) {
+      if (!row.row.lczInfoData.length && row.columnIndex === 8) {
         return `warning`
       }
-      //  上车人数
-      if (!row.row.on && row.columnIndex === 9) {
-        return `warning`
-      }
-      //  下车人数
-      if (!row.row.off && row.columnIndex === 10) {
-        return `warning`
-      }
-      //  中转人数
-      if (!row.row.transformNum && row.columnIndex === 11) {
-        return `warning`
-      }
-      //  重点旅客总数
-      if (!row.row.keyCustomerAccount && row.columnIndex === 12) {
-        return `warning`
-      }
+      // //  上车人数
+      // if (!row.row.totalArriveNum && row.columnIndex === 9) {
+      //   return `warning`
+      // }
+      // //  下车人数
+      // if (!row.row.totalDepartNum && row.columnIndex === 10) {
+      //   return `warning`
+      // }
+      // //  中转人数
+      // if (!row.row.totalTransferNum && row.columnIndex === 11) {
+      //   return `warning`
+      // }
+      // //  重点旅客总数
+      // if (!row.row.zdlvNum && row.columnIndex === 12) {
+      //   return `warning`
+      // }
     },
     spanFn () {
     },
@@ -277,7 +291,6 @@ export default {
     },
     checktoKen () {
       if (!this.token) {
-        console.log(this.token)
         this.$message.error('请您先登录')
         this.$router.replace('/')
       }
@@ -309,13 +322,18 @@ export default {
     // 搜索
     searchFn () {
       //  this.searchSwitch
+      if (this.search) {
+        this.searchSwitch = false
+      } else {
+        this.searchSwitch = true
+      }
+      this.getData(this.search)
     },
     //  获取数据
-    getData () {
-      console.log('....')
-      this.axios.post(waitingRooms()).then((response) => {
-        console.log(response.data.data)
-        let switchBoer = false
+    getData (parameter) {
+      let parameterData = !parameter ? '' : parameter
+      this.axios.post(waitingRooms(parameterData)).then((response) => {
+        // let switchBoer = false
         let time = new Date().getTime()
         this.keynote = 0
         this.wheelchair = 0
@@ -323,36 +341,62 @@ export default {
         response.data.data.forEach((val, index) => {
           val.dateData = this.fmtDate(val.date, 1)
           //  sendTrain 为true 发车车次   false 到达车次
-          if (val.sendTrain === 1 || val.sendTrain === 3) {
+          if (val.trainType === 1 || val.trainType === 3) {
             //  regulationsData
             val.regulationsData = this.fmtDate(val.planFaCheTime, 2)
+            val.regulationsTime = val.planFaCheTime
             //  actualData
             val.actualData = this.fmtDate(val.realFaCheTime, 2)
             val.difference = this.difference(val.planFaCheTime, val.realFaCheTime)
           } else {
             val.regulationsData = this.fmtDate(val.planDaoDaTime, 2)
+            val.regulationsTime = val.planDaoDaTime
             val.actualData = this.fmtDate(val.realDaoDaTime, 2)
             val.difference = this.difference(val.planDaoDaTime, val.realDaoDaTime)
           }
+          //  列车长姓名
+          val.lczInfoData = []
+          if (val.lczInfo) {
+            if (val.lczInfo.indexOf(',') !== -1) {
+              val.lczInfoData = val.lczInfo.split(',')
+            } else {
+              val.lczInfoData.push(val.lczInfo)
+            }
+          }
+          //  候车室
+          val.waiting = this.waitingFn(val.hcs)
+          //
           //  判断当前时间戳是否为今日
-
-          if (this.isToday(val.date)) {
-            // console.log(index)
-            let keynoteNumder = val.keyCustomers ? parseInt(val.keyCustomers) : 0
-            let wheelchairNumder = val.wheelchair ? parseInt(val.wheelchair) : 0
-            let stretcherNumder = val.stretcher ? parseInt(val.stretcher) : 0
-            this.keynote += keynoteNumder
-            this.wheelchair += wheelchairNumder
-            this.stretcher += stretcherNumder
-            //  拿到今日 第一个值 将滚动条 滚到其对应索引位置
-            if (!switchBoer) {
-              this.rollingIndex = index
-              switchBoer = true
+          // if (this.isToday(val.date)) {
+          //   // console.log(index)
+          //   let keynoteNumder = val.keyCustomers ? parseInt(val.keyCustomers) : 0
+          //   let wheelchairNumder = val.wheelchair ? parseInt(val.wheelchair) : 0
+          //   let stretcherNumder = val.stretcher ? parseInt(val.stretcher) : 0
+          //   this.keynote += keynoteNumder
+          //   this.wheelchair += wheelchairNumder
+          //   this.stretcher += stretcherNumder
+          // }
+          if (this.searchSwitch) {
+            let differenceValue = time - val.regulationsTime
+            val.differenceValue = differenceValue < 0 ? Math.abs(differenceValue) : differenceValue
+            // this.differenceValueArry.push(val.differenceValue)
+            // console.log(val.differenceValue)
+            if (!this.differenceValueArry.value) {
+              this.differenceValueArry.value = val.differenceValue
+              this.differenceValueArry.index = index
+            } else if (this.differenceValueArry.value > val.differenceValue) {
+              this.differenceValueArry.value = val.differenceValue
+              this.differenceValueArry.index = index
             }
           }
         })
-        console.log('take time : ' + (new Date().getTime() - time) + 'ms')
+        // console.log('take time : ' + (new Date().getTime() - time) + 'ms')
         this.tableData = response.data.data
+        //  拿到当前时间最近接近的值 将滚动条 滚到其对应索引位置
+        if (this.searchSwitch) {
+          this.rollingIndex = this.differenceValueArry.index
+          // this.rolling(this.rollingIndex)
+        }
       })
     },
     //  判断时间戳是否为今日
@@ -398,32 +442,81 @@ export default {
       this.$refs.table.bodyWrapper.scrollTop = (this.$refs.table.bodyWrapper.firstChild.clientHeight / this.tableData.length) * (index)
       //  clearInterval(this.intervalFnD)
     },
-    trainDetailsFn () {
-      this.popupSwitch = true
-      this.detailsSwitch = true
+    trainDetailsFn (data) {
+      let trainNumber = data.cheCi.replace(/\s*/g, '')
+      let riqi = data.date
+      this.rowCheCi = data.cheCi
+      this.axios.post(findTrainInfo(trainNumber, riqi)).then((res) => {
+        if (res.data.code === 0) {
+          this.trainDetailsData = res.data.data
+          this.popupSwitch = true
+          this.detailsSwitch = true
+        }
+      })
     },
-    trainMasterFn () {
-      this.popupSwitch = true
-      this.trainSwitch = true
+    trainMasterFn (row, item) {
+      let date = row.date
+      let cheCi = row.cheCi
+      this.rowCheCi = cheCi
+      this.axios.post(waitingRoom(cheCi, date, item)).then((res) => {
+        this.trainMasterData = res.data.data[0]
+        this.popupSwitch = true
+        this.trainSwitch = true
+      })
     },
-    keyCustomerAccountFn () {
-      this.popupSwitch = true
-      this.passengersSwitch = true
+    keyCustomerAccountFn (row) {
+      let cheCi = row.cheCi
+      let riqi = row.date
+      this.passengersrunId = {
+        cheCi: row.cheCi,
+        riqi: row.date
+      }
+      this.axios.post(findzdlkInfo(cheCi, riqi)).then((res) => {
+        if (res.data.code === 0) {
+          if (res.data.data.data.length) {
+            res.data.data.data.forEach((val, index) => {
+              val.index = index + 1
+            })
+          }
+          this.passengersData = res.data.data
+          this.popupSwitch = true
+          this.passengersSwitch = true
+        }
+      })
     },
     differenceFn () {
       this.popupSwitch = true
       this.behindSwitch = true
     },
+    platformFn (row) {
+      let runId = row.runId
+      let date = row.date
+      this.rowCheCi = row.cheCi
+      this.axios.post(findZtHistoryInfo(runId, date)).then((res) => {
+        if (res.data.code === 0) {
+          this.platformData = res.data.data
+          this.popupSwitch = true
+          this.platformSwitch = true
+        }
+      })
+    },
     intervalFn () {
       // clearInterval()
+      this.updatedSwitch = true
       setInterval(() => {
-        if (this.getDataSwitch && this.searchSwitch) {
+        if (this.getDataSwitch && this.searchSwitch && this.moveOut) {
           //  再这里将 scrollTop 存入 scrollSwitch中
           // this.scrollSwitch.push(this.$refs.table.bodyWrapper.scrollTop)
           this.getData()
         }
         // clearInterval(time)
+        this.month = this.fmtDate((new Date()).getTime(), 3)
       }, 60000)
+    },
+    updateFn () {
+      this.getData()
+      this.findCurrentDay()
+      this.closeFn()
     },
     arryIf (res) {
       if (this.scrollSwitch.length) {
@@ -447,29 +540,54 @@ export default {
         this.scrollSwitch.push(res)
         return true
       }
+    },
+    //  候车室截取
+    waitingFn (str) {
+      if (str) {
+        let reg = /[1-9][0-9]*/g
+        let arr = str.match(reg)
+        if (arr.length) {
+          return `${arr.join()}候车室`
+        }
+      }
+    },
+    changeCellenter () {
+      this.moveOut = false
+    },
+    changeCellleave () {
+      this.moveOut = true
+    },
+    findCurrentDay () {
+      let riqi = new Date(new Date().toLocaleDateString()).getTime()
+      this.axios.post(findCurrentDayZdlkInfo(riqi)).then((res) => {
+        if (res.data.code === 0) {
+          this.keynote = res.data.data.zhongdian
+          this.wheelchair = res.data.data.lunyi
+          this.stretcher = res.data.data.danjia
+        }
+      })
     }
   },
   watch: {
-    rollingIndex (data) {
-      this.rolling(data)
+    search () {
+      this.updatedSwitch = false
     },
     popupSwitch (data) {
+      this.updatedSwitch = false
       if (data) {
         this.getDataSwitch = false
       } else {
         this.getDataSwitch = true
       }
+    },
+    month () {
+      this.findCurrentDay()
     }
   },
   updated () {
-    this.rolling(this.rollingIndex)
-    //  列表滚动 事件
-    // this.$refs.table.bodyWrapper.addEventListener('scroll', (res) => {
-    //   if (this.arryIf(res.timeStamp)) {
-    //
-    //   }
-    //   console.log(res.timeStamp)
-    // }, true)
+    if (this.updatedSwitch) {
+      this.rolling(this.rollingIndex)
+    }
   },
   created () {
     //  本地校验token
@@ -478,6 +596,7 @@ export default {
     this.intervalFn()
     this.homepageTitle = '北京西站12306服务台'
     this.searchText = '搜索'
+    this.findCurrentDay()
   }
 }
 </script>
@@ -629,7 +748,8 @@ export default {
   .tableRow
     height 50px
   .noData
-    background #ccc!important
+    cursor pointer
+    color $color-red!important
   .blue
     cursor pointer
     text-decoration underline
@@ -647,6 +767,8 @@ export default {
   .differenceColor
     cursor pointer
     text-decoration underline
+  .blueSpan
+    margin-right 4px
 </style>
 <style>
   .el-table .warning {

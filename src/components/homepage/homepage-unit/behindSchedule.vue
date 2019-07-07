@@ -76,20 +76,15 @@ export default {
     position absolute
     top 50%
     left 50%
-    margin -300px 0 0 -220px
-    height 560px
-    background #fff
+    margin -300px 0 0 -200px
+    background #4e5870
+    overflow hidden
     width 400px
-    padding 20px
     .behindSchedule-title
       unitTitle()
     .behindSchedule-subject
       overflow hidden
       width 100%
   .close
-    position absolute
-    top 20px
-    right 20px
-    height 30px
-    width 30px
+    close()
 </style>

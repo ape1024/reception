@@ -1,15 +1,29 @@
 <template>
   <div class="detailsTrains" @click.stop>
     <h4 class="detailsTrains-title">
-      {{detailsTrainsTitle}}
+      {{rowCheCi}}{{detailsTrainsTitle}}
     </h4>
     <ul class="detailsTrains-subject">
-      <li class="detailsTrains-subject-li">{{vehicle}}</li>
-      <li class="detailsTrains-subject-li">{{reconnect}}</li>
-      <li class="detailsTrains-subject-li">{{marshalling}}</li>
-      <li class="detailsTrains-subject-li">{{groupings}}</li>
-      <li class="detailsTrains-subject-li">{{folding}}</li>
-      <li class="detailsTrains-subject-li"></li>
+      <li class="detailsTrains-subject-li">
+        <p class="detailsTrains-subject-li-left">{{vehicle}}</p>
+        <p class="detailsTrains-subject-li-right">{{vehicleData}}</p>
+        </li>
+      <li class="detailsTrains-subject-li">
+        <p class="detailsTrains-subject-li-left">{{reconnect}}</p>
+        <p class="detailsTrains-subject-li-right">{{reconnectData}}</p>
+      </li>
+      <li class="detailsTrains-subject-li">
+        <p class="detailsTrains-subject-li-left">{{marshalling}}</p>
+        <p class="detailsTrains-subject-li-right">{{marshallingData}}</p>
+      </li>
+      <li class="detailsTrains-subject-li">
+        <p class="detailsTrains-subject-li-left">{{groupings}}</p>
+        <p class="detailsTrains-subject-li-right">{{groupingsData}}</p>
+      </li>
+      <li class="detailsTrains-subject-li">
+        <p class="detailsTrains-subject-li-left">{{folding}}</p>
+        <p class="detailsTrains-subject-li-right">{{foldingData}}</p>
+      </li>
     </ul>
     <img @click="close" class="close" src="../../../common/img/close.png" alt="">
   </div>
@@ -18,6 +32,7 @@
 <script>
 export default {
   name: 'detailsTrains',
+  props: ['trainDetailsData', 'rowCheCi'],
   data () {
     return {
       detailsTrainsTitle: '',
@@ -26,7 +41,12 @@ export default {
       marshalling: '',
       groupings: '',
       folding: '',
-      continuous: ''
+      continuous: '',
+      vehicleData: '',
+      reconnectData: '',
+      marshallingData: '',
+      groupingsData: '',
+      foldingData: ''
     }
   },
   methods: {
@@ -42,6 +62,24 @@ export default {
     this.groupings = '编组数: '
     this.folding = '立折车次: '
     this.continuous = '接续车次: '
+    if (this.trainDetailsData) {
+      this.vehicleData = this.trainDetailsData.arrivalTrainCode
+      this.reconnectData = this.trainDetailsData.trainChongLian === 0 ? '否' : '是'
+      this.marshallingData = this.trainDetailsData.coachWay === 0 ? '正序' : '倒序'
+      this.groupingsData = this.trainDetailsData.couchCount
+      this.foldingData = '暂无'
+    } else {
+      this.vehicleData = '暂无'
+      this.reconnectData = '暂无'
+      this.marshallingData = '暂无'
+      this.groupingsData = '暂无'
+      this.foldingData = '暂无'
+    }
+
+    // this.marshallingData =
+    // this.reconnectData =
+    // this.marshallingData =
+    // this.groupingsData =
   }
 }
 </script>
@@ -52,13 +90,15 @@ export default {
     position absolute
     top 50%
     left 50%
-    margin -200px 0 0 -270px
-    background #fff
+    margin -180px 0 0 -250px
+    background #4e5870
+    color #fff
     width 500px
-    padding 20px
+    border-radius 8px
     .detailsTrains-title
       unitTitle()
     .detailsTrains-subject
+      margin 0 20px
       position relative
       font-size 16px
       overflow hidden
@@ -66,9 +106,9 @@ export default {
         padding 20px 0
         overflow hidden
   .close
-    position absolute
-    top 20px
-    right 20px
-    height 30px
-    width 30px
+    close()
+  .detailsTrains-subject-li-left
+    float left
+  .detailsTrains-subject-li-right
+    float right
 </style>
