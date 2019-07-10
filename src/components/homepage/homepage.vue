@@ -2,7 +2,7 @@
   <div class="homepage" @click="homepageClick">
     <div class="homepage-div">
       <h4 class="homepage-title">
-        {{homepageTitle}}1
+        {{homepageTitle}}
       </h4>
       <div class="homepage-subject">
         <div class="homepage-condition">
@@ -98,7 +98,7 @@
                 <el-table-column
                   label="图定到发">
                   <template slot-scope="scope">
-                    <div v-if="scope.row.difference" @click="differenceFn">
+                    <div v-if="scope.row.difference" @click="differenceFn(scope.row)">
                       <span class="differenceColor">{{scope.row.regulationsData}}</span><span class="red">{{scope.row.difference}}</span>
                     </div>
                     <div v-if="!scope.row.difference">
@@ -140,17 +140,29 @@
                     </div>
                   </template>
                 </el-table-column>
+                <!--<el-table-column-->
+                  <!--prop="totalArriveNum"-->
+                  <!--label="上车人数">-->
+                <!--</el-table-column>-->
+                <!--<el-table-column-->
+                  <!--prop="totalDepartNum"-->
+                  <!--label="下车人数">-->
+                <!--</el-table-column>-->
+                <!--<el-table-column-->
+                  <!--prop="totalTransferNum"-->
+                  <!--label="中转人数">-->
+                <!--</el-table-column>-->
                 <el-table-column
-                  prop="totalArriveNum"
-                  label="上车人数">
+                  prop="zhongdianNum"
+                  label="重点人员">
                 </el-table-column>
                 <el-table-column
-                  prop="totalDepartNum"
-                  label="下车人数">
+                  prop="lunyiNum"
+                  label="轮椅旅客">
                 </el-table-column>
                 <el-table-column
-                  prop="totalTransferNum"
-                  label="中转人数">
+                  prop="danjiaNum"
+                  label="担架旅客">
                 </el-table-column>
                 <el-table-column
                   label="重点旅客总数">
@@ -167,7 +179,7 @@
     <!--弹窗-->
     <div v-if="popupSwitch" class="popupWindow" @click="popupWindowClose">
       <!--晚点历史数据-->
-      <behindSchedule  v-if="behindSwitch" @close="closeFn"></behindSchedule>
+      <behindSchedule :rowCheCi="rowCheCi" :behindScheduleData="behindScheduleData"  v-if="behindSwitch" @close="closeFn"></behindSchedule>
       <!--站台变更-->
       <platformChange :rowCheCi="rowCheCi" :platformData="platformData" v-if="platformSwitch" @close="closeFn"></platformChange>
       <!--列车详情-->
@@ -187,7 +199,7 @@ import detailsTrains from './homepage-unit/detailsTrains'
 import trainConductor from './homepage-unit/trainConductor'
 import keyPassengers from './homepage-unit/keyPassengers'
 import { projectMixin } from '../../common/js/mixin'
-import { waitingRooms, waitingRoom, findCurrentDayZdlkInfo, findTrainInfo, findZtHistoryInfo, findzdlkInfo } from '../../api/url'
+import { waitingRooms, waitingRoom, findCurrentDayZdlkInfo, findTrainInfo, findZtHistoryInfo, findzdlkInfo, findHistoryLateTime } from '../../api/url'
 export default {
   name: 'homepage',
   mixins: [projectMixin],
@@ -223,7 +235,8 @@ export default {
       },
       rowCheCi: '',
       moveOut: true,
-      passengersrunId: {}
+      passengersrunId: {},
+      behindScheduleData: []
     }
   },
   components: {
@@ -235,7 +248,6 @@ export default {
   },
   methods: {
     changeCellStyle (row, column, rowIndex, columnIndex) {
-      // console.log(row)
       //  车次
       if (!row.row.cheCi && row.columnIndex === 1) {
         return `warning`
@@ -324,8 +336,10 @@ export default {
       //  this.searchSwitch
       if (this.search) {
         this.searchSwitch = false
+        this.updatedSwitch = false
       } else {
         this.searchSwitch = true
+        this.updatedSwitch = true
       }
       this.getData(this.search)
     },
@@ -335,9 +349,6 @@ export default {
       this.axios.post(waitingRooms(parameterData)).then((response) => {
         // let switchBoer = false
         let time = new Date().getTime()
-        this.keynote = 0
-        this.wheelchair = 0
-        this.stretcher = 0
         response.data.data.forEach((val, index) => {
           val.dateData = this.fmtDate(val.date, 1)
           //  sendTrain 为true 发车车次   false 到达车次
@@ -366,16 +377,6 @@ export default {
           //  候车室
           val.waiting = this.waitingFn(val.hcs)
           //
-          //  判断当前时间戳是否为今日
-          // if (this.isToday(val.date)) {
-          //   // console.log(index)
-          //   let keynoteNumder = val.keyCustomers ? parseInt(val.keyCustomers) : 0
-          //   let wheelchairNumder = val.wheelchair ? parseInt(val.wheelchair) : 0
-          //   let stretcherNumder = val.stretcher ? parseInt(val.stretcher) : 0
-          //   this.keynote += keynoteNumder
-          //   this.wheelchair += wheelchairNumder
-          //   this.stretcher += stretcherNumder
-          // }
           if (this.searchSwitch) {
             let differenceValue = time - val.regulationsTime
             val.differenceValue = differenceValue < 0 ? Math.abs(differenceValue) : differenceValue
@@ -445,7 +446,7 @@ export default {
     trainDetailsFn (data) {
       let trainNumber = data.cheCi.replace(/\s*/g, '')
       let riqi = data.date
-      this.rowCheCi = data.cheCi
+      this.rowCheCi = trainNumber
       this.axios.post(findTrainInfo(trainNumber, riqi)).then((res) => {
         if (res.data.code === 0) {
           this.trainDetailsData = res.data.data
@@ -465,7 +466,7 @@ export default {
       })
     },
     keyCustomerAccountFn (row) {
-      let cheCi = row.cheCi
+      let cheCi = row.cheCi.replace(/\s*/g, '')
       let riqi = row.date
       this.passengersrunId = {
         cheCi: row.cheCi,
@@ -484,9 +485,37 @@ export default {
         }
       })
     },
-    differenceFn () {
-      this.popupSwitch = true
-      this.behindSwitch = true
+    differenceFn (row) {
+      // this.axios
+      let planID = row.planID
+      let cheCi = row.cheCi.replace(/\s*/g, '')
+      this.rowCheCi = cheCi
+      if (planID) {
+        // findHistoryLateTime
+        this.axios.post(findHistoryLateTime(cheCi, planID)).then((res) => {
+          if (res.data.code === 0) {
+            let arr = []
+            res.data.data.forEach((val) => {
+              if (arr.length) {
+                arr.forEach((item) => {
+                  if (item.lateTimeArrive !== val.lateTimeArrive || item.lateTime !== val.lateTime) {
+                    val.realDepartureTimeData = this.fmtDate(val.realDepartureTime, 2)
+                    val.realArriveTimeData = this.fmtDate(val.realArriveTime, 2)
+                    arr.push(val)
+                  }
+                })
+              } else {
+                val.realDepartureTimeData = this.fmtDate(val.realDepartureTime, 2)
+                val.realArriveTimeData = this.fmtDate(val.realArriveTime, 2)
+                arr.push(val)
+              }
+            })
+            this.behindScheduleData = arr
+            this.popupSwitch = true
+            this.behindSwitch = true
+          }
+        })
+      }
     },
     platformFn (row) {
       let runId = row.runId
@@ -514,7 +543,7 @@ export default {
       }, 60000)
     },
     updateFn () {
-      this.getData()
+      this.getData(this.search)
       this.findCurrentDay()
       this.closeFn()
     },
@@ -544,10 +573,35 @@ export default {
     //  候车室截取
     waitingFn (str) {
       if (str) {
-        let reg = /[1-9][0-9]*/g
-        let arr = str.match(reg)
-        if (arr.length) {
+        let reg = /[1-9][0-9]*候/g
+        let arrJ = []
+        let arr = []
+        if (str.indexOf(',') !== -1) {
+          arrJ = str.split(',')
+          arrJ.forEach((val) => {
+            if (val.indexOf('检票') === -1) {
+              let regNumber = /\d+/
+              if (regNumber.test(val)) {
+                let string = val.match(reg)
+                if (string[0].indexOf('候')) {
+                  string = string[0].substring(0, string[0].length - 1)
+                }
+                arr.push(string)
+              }
+            }
+          })
+        }
+        //  软席  临候
+        if (str.indexOf('软席') !== -1) {
+          arr.push('软席')
+        }
+        if (str.indexOf('临候') !== -1) {
+          arr.push('临候')
+        }
+        if (arr && arr.length) {
           return `${arr.join()}候车室`
+        } else {
+          return ``
         }
       }
     },
@@ -561,6 +615,7 @@ export default {
       let riqi = new Date(new Date().toLocaleDateString()).getTime()
       this.axios.post(findCurrentDayZdlkInfo(riqi)).then((res) => {
         if (res.data.code === 0) {
+          console.log(res)
           this.keynote = res.data.data.zhongdian
           this.wheelchair = res.data.data.lunyi
           this.stretcher = res.data.data.danjia
@@ -594,7 +649,8 @@ export default {
     // this.checktoKen()
     this.getData()
     this.intervalFn()
-    this.homepageTitle = '北京西站12306服务台'
+    // this.homepageTitle = '北京西站12306服务台'
+    this.homepageTitle = '北京西站036服务台'
     this.searchText = '搜索'
     this.findCurrentDay()
   }
@@ -775,23 +831,26 @@ export default {
     background: #7e889f!important;
   }
   .el-table th, .el-table tr {
-    background-color: #636e8a;
+    background-color: #636e8a!important;
   }
   .el-table--enable-row-hover .el-table__body tr:hover>td{
-    background-color: #9099b1;
+    background-color: #9099b1!important;
   }
   .el-table td, .el-table th.is-leaf {
     border-color: #5a6379!important;
   }
   .el-table--border, .el-table--group {
-    background-color: #4e5870;
-    border: none;
+    background-color: #4e5870!important;
+    border: none!important;
   }
   .el-table .cell {
-    color: #fff;
-    text-align: center;
+    color: #fff!important;
+    text-align: center!important;
   }
   .el-table--border::after, .el-table--group::after, .el-table::before {
-    background-color: transparent;
+    background-color: transparent!important;
+  }
+  .el-table__empty-block {
+    background: #636e8a!important;
   }
 </style>

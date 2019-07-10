@@ -1,7 +1,7 @@
 <template>
   <div class="behindSchedule" @click.stop>
     <h4 class="behindSchedule-title">
-      {{behindScheduleTitle}}
+      {{rowCheCi}}{{behindScheduleTitle}}
     </h4>
     <div class="behindSchedule-subject">
       <el-table
@@ -9,22 +9,22 @@
         style="width: 100%"
       >
         <el-table-column
-          prop="date"
+          prop="realArriveTimeData"
           label="时间"
           width="100">
         </el-table-column>
         <el-table-column
-          prop="name"
+          prop="lateTimeArrive"
           label="到晚点"
           width="100">
         </el-table-column>
         <el-table-column
-          prop="name"
+          prop="realDepartureTimeData"
           label="时间"
           width="100">
         </el-table-column>
         <el-table-column
-          prop="address"
+          prop="lateTime"
           label="发晚点"
           width="100">
         </el-table-column>
@@ -37,26 +37,11 @@
 <script>
 export default {
   name: 'behindSchedule',
+  props: ['rowCheCi', 'behindScheduleData'],
   data () {
     return {
       behindScheduleTitle: '',
-      tableData: [{
-        date: '2016-05-02',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1518 弄'
-      }, {
-        date: '2016-05-04',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1517 弄'
-      }, {
-        date: '2016-05-01',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1519 弄'
-      }, {
-        date: '2016-05-03',
-        name: '王小虎',
-        address: '上海市普陀区金沙江路 1516 弄'
-      }]
+      tableData: []
     }
   },
   methods: {
@@ -65,6 +50,8 @@ export default {
     }
   },
   created () {
+    console.log(this.behindScheduleData)
+    this.tableData = this.behindScheduleData
     this.behindScheduleTitle = '晚点历史数据'
   }
 }

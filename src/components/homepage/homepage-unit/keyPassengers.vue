@@ -62,9 +62,21 @@
               <el-input size="mini" v-model="scope.row.phoneNo" placeholder="电话"></el-input>
             </template>
           </el-table-column>
+          <el-table-column prop="fuWu" label="服务类型">
+            <template slot-scope="scope">
+              <el-select  @focus="bookbuytimevisible(scope.row.fuWu)" @change="bookbuytimeFn" size="mini" v-model="scope.row.fuWu" placeholder="服务类型">
+                <el-option
+                  v-for="item in provide"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </template>
+          </el-table-column>
           <el-table-column prop="lkStyle" label="旅客类型">
             <template slot-scope="scope">
-              <el-select @change="bookbuytimeFn" size="mini" v-model="scope.row.lkStyle" placeholder="旅客类型">
+              <el-select  size="mini" v-model="scope.row.lkStyle" placeholder="旅客类型">
                 <el-option
                   v-for="item in options"
                   :key="item.value"
@@ -135,6 +147,13 @@ export default {
         {label: '护送器官旅客', value: '护送器官旅客'},
         {label: '特殊需求旅客', value: '特殊需求旅客'},
         {label: '其他', value: '其他'}],
+      provide: [
+        {label: '优先进站', value: '优先进站'},
+        {label: '便利出站', value: '便利出站'},
+        {label: '提供轮椅', value: '提供轮椅'},
+        {label: '提供担架', value: '提供担架'},
+        {label: '其他', value: '其他'}
+      ],
       stretcherUsed: 0,
       wheelchairUsed: 0,
       keynoteUsed: 0,
@@ -143,17 +162,36 @@ export default {
       keynoteMin: 0,
       stretcherCha: 0,
       wheelchairCha: 0,
-      keynoteCha: 0
+      keynoteCha: 0,
+      updataSwitch: true,
+      updataJl: ''
     }
   },
   methods: {
-    addLine () { //  添 加行数
+    bookbuytimevisible (data) {
+      // console.log(booter)
+      console.log(data)
+      if (this.updataSwitch) {
+        this.updataJl = data
+        this.updataSwitch = false
+      } else {
+        this.updataJl = ''
+        this.updataSwitch = false
+      }
+    },
+    addLine () {
+      //  添 加行数
       let newValue = {
-        bookname: '',
-        bookbuytime: '',
-        bookbuyer: '',
-        bookborrower: '',
-        bookvolume: ''
+        index: '',
+        lkName: '',
+        sex: '',
+        phoneNo: '',
+        fuWu: '',
+        lkStyle: '',
+        qujian: '',
+        cx: '',
+        sfz: '',
+        content: ''
       }
       //  添加新的行数
       this.tableData.push(newValue)
@@ -163,6 +201,13 @@ export default {
     },
     save () {
       //  这部分应该是保存提交你添加的内容
+      let stretcher = 0
+      let wheelchair = 0
+      let keynote = 0
+      let strecherNew = 0
+      let wheelchairNew = 0
+      let keynoteNew = 0
+      let cheCi = this.cheCi.replace(/\s*/g, '')
       if (this.tableData.length) {
         this.tableData.forEach((val) => {
           if (!val.cheCi) {
@@ -171,12 +216,22 @@ export default {
           if (!val.date) {
             val.date = this.riqi
           }
+          if (val.fuWu === '提供担架') {
+            stretcher += 1
+          } else if (val.fuWu === '提供轮椅') {
+            wheelchair += 1
+          } else {
+            keynote += 1
+          }
         })
       }
-      this.axios.post(addZdlkInfo(this.cheCi, this.riqi, this.stretcher, this.wheelchair, this.keynote), this.tableData).then((res) => {
+      console.log(this.tableData)
+      strecherNew = this.stretcher - stretcher
+      wheelchairNew = this.wheelchair - wheelchair
+      keynoteNew = this.keynote - keynote
+      this.axios.post(addZdlkInfo(cheCi, this.riqi, strecherNew, wheelchairNew, keynoteNew), this.tableData).then((res) => {
         console.log(res)
         if (res.data.code === 0) {
-          console.log('///')
           this.$emit('keyupdate')
         }
       })
@@ -184,43 +239,64 @@ export default {
     close () {
       this.$emit('close')
     },
-    bookbuytimeFn () {
+    bookbuytimeFn (data) {
+      this.updataSwitch = true
+      console.log(this.updataJl, '1')
+      if (this.updataJl) {
+        if (this.updataJl === '提供担架') {
+          this.stretcher -= 1
+        } else if (this.updataJl === '提供轮椅') {
+          this.wheelchair -= 1
+        } else if (this.updataJl === '优先进站' || this.updataJl === '便利出站' || this.updataJl === '其他') {
+          this.keynote -= 1
+        }
+      }
+      console.log(data, '2')
+      if (data === '提供担架') {
+        this.stretcher += 1
+      } else if (data === '提供轮椅') {
+        this.wheelchair += 1
+      } else if (data === '优先进站' || data === '便利出站' || data === '其他') {
+        console.log('111///')
+        this.keynote += 1
+      }
       let stretcher = 0
       let wheelchair = 0
       let keynote = 0
       this.tableData.forEach((val) => {
-        if (val.lkStyle === '担架旅客') {
+        if (val.fuWu === '提供担架') {
           stretcher += 1
-        } else if (val.lkStyle === '轮椅旅客') {
+        } else if (val.fuWu === '提供担架') {
           wheelchair += 1
-        } else {
+        } else if (val.fuWu === '优先进站' || val.fuWu === '便利出站' || val.fuWu === '其他') {
+          console.log(data)
           keynote += 1
         }
       })
       this.stretcherMin = stretcher
       this.wheelchairMin = wheelchair
       this.keynoteMin = keynote
-      if ((stretcher - this.stretcherUsed) === 0) {
-        this.stretcher = this.stretcherUsed
-      } else if (stretcher - this.stretcherUsed < 0) {
-        this.stretcher = stretcher + this.stretcherCha
-      } else if (stretcher - this.stretcherUsed > 0) {
-        this.stretcher = stretcher + this.stretcherCha
-      }
-      if ((wheelchair - this.wheelchairUsed) === 0) {
-        this.wheelchair = this.wheelchairUsed
-      } else if (wheelchair - this.wheelchairUsed < 0) {
-        this.wheelchair = wheelchair + this.wheelchairCha
-      } else if (wheelchair - this.wheelchair > 0) {
-        this.wheelchair = wheelchair + this.wheelchairCha
-      }
-      if ((keynote - this.keynoteUsed) === 0) {
-        this.keynote = this.keynoteUsed
-      } else if (keynote - this.keynoteUsed < 0) {
-        this.keynote = keynote + this.keynoteCha
-      } else if (keynote - this.keynoteUsed > 0) {
-        this.keynote = keynote + this.keynoteCha
-      }
+      // if ((stretcher - this.stretcherUsed) === 0) {
+      //   this.stretcher = this.stretcherUsed
+      // } else if (stretcher - this.stretcherUsed < 0) {
+      //   this.stretcher = stretcher + this.stretcherCha
+      // } else if (stretcher - this.stretcherUsed > 0) {
+      //   this.stretcher = stretcher + this.stretcherCha
+      // }
+      // if ((wheelchair - this.wheelchairUsed) === 0) {
+      //   this.wheelchair = this.wheelchairUsed
+      // } else if (wheelchair - this.wheelchairUsed < 0) {
+      //   this.wheelchair = wheelchair + this.wheelchairCha
+      // } else if (wheelchair - this.wheelchair > 0) {
+      //   this.wheelchair = wheelchair + this.wheelchairCha
+      // }
+      // if ((keynote - this.keynoteUsed) === 0) {
+      //   this.keynote = this.keynoteUsed
+      // } else if (keynote - this.keynoteUsed < 0) {
+      //   this.keynote = keynote + this.keynoteCha
+      // } else if (keynote - this.keynoteUsed > 0) {
+      //   this.keynote = keynote + this.keynoteCha
+      // }
       // this.stretcher = this.stretcherUsed + stretcher
       // this.wheelchair = this.wheelchairUsed + wheelchair
       // this.keynote = this.keynoteUsed + keynote
@@ -237,7 +313,6 @@ export default {
     this.increase = '手动增加'
     this.saveTxt = '保存'
     this.closeText = '关闭'
-
     if (this.passengersData) {
       this.keynote = this.passengersData.zhongdian
       this.wheelchair = this.passengersData.lunyi
@@ -245,23 +320,6 @@ export default {
       this.keynoteUsed = this.passengersData.zhongdian
       this.wheelchairUsed = this.passengersData.lunyi
       this.stretcherUsed = this.passengersData.danjia
-      if (this.passengersData.data.length) {
-        let keynote = 0
-        let wheelchair = 0
-        let stretcher = 0
-        this.passengersData.data.forEach((val) => {
-          if (val.lkStyle === '担架旅客') {
-            stretcher += 1
-          } else if (val.lkStyle === '轮椅旅客') {
-            wheelchair += 1
-          } else {
-            keynote += 1
-          }
-        })
-        this.stretcherCha = this.passengersData.danjia - stretcher
-        this.wheelchairCha = this.passengersData.lunyi - wheelchair
-        this.keynoteCha = this.passengersData.zhongdian - keynote
-      }
       this.tableData = this.passengersData.data
     }
   }

@@ -23,3 +23,7 @@ export const findzdlkInfo = (trainNumber, riqi) => {
 export const addZdlkInfo = (cheCi, riqi, danjia, lunyi, zhongdian) => {
   return `${Test}/waitingRoom/addZdlkInfo?cheCi=${cheCi}&riqi=${riqi}&danjia=${danjia}&lunyi=${lunyi}&zhongdian=${zhongdian}`
 }
+
+export const findHistoryLateTime = (trainNumber, planId) => {
+  return `${Test}/waitingRoom/findHistoryLateTime?trainNumber=${trainNumber}&planId=${planId}`
+}
