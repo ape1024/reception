@@ -91,7 +91,7 @@ export default {
     top 50%
     left 50%
     margin -180px 0 0 -250px
-    background #4e5870
+    background #071321
     color #fff
     width 500px
     border-radius 8px

@@ -61,7 +61,8 @@
           <div class="homepage-table">
             <div class="homepage-table-body" @mouseleave="changeCellleave" @mouseenter="changeCellenter">
               <el-table
-                :header-cell-style="{background:'#3c4761',color:'#fff'}"
+                :header-cell-style="{background:'rgba(41,174,241,.6)!important',color:'#fff'}"
+                :row-class-name="tableRowClassName"
                 :cell-class-name="changeCellStyle"
                 ref='table'
                 :data="tableData"
@@ -140,30 +141,32 @@
                     </div>
                   </template>
                 </el-table-column>
-                <!--<el-table-column-->
-                  <!--prop="totalArriveNum"-->
-                  <!--label="上车人数">-->
-                <!--</el-table-column>-->
-                <!--<el-table-column-->
-                  <!--prop="totalDepartNum"-->
-                  <!--label="下车人数">-->
-                <!--</el-table-column>-->
-                <!--<el-table-column-->
-                  <!--prop="totalTransferNum"-->
-                  <!--label="中转人数">-->
-                <!--</el-table-column>-->
                 <el-table-column
-                  prop="zhongdianNum"
-                  label="重点人员">
+                  prop="totalDepartNum"
+                  label="上车人数">
                 </el-table-column>
                 <el-table-column
-                  prop="lunyiNum"
-                  label="轮椅旅客">
+                  prop="totalArriveNum"
+                  label="下车人数">
                 </el-table-column>
                 <el-table-column
-                  prop="danjiaNum"
-                  label="担架旅客">
+                  prop="totalTransferNum"
+                  label="中转人数">
                 </el-table-column>
+
+                <!--<el-table-column-->
+                  <!--prop="zhongdianNum"-->
+                  <!--label="重点人员">-->
+                <!--</el-table-column>-->
+                <!--<el-table-column-->
+                  <!--prop="lunyiNum"-->
+                  <!--label="轮椅旅客">-->
+                <!--</el-table-column>-->
+                <!--<el-table-column-->
+                  <!--prop="danjiaNum"-->
+                  <!--label="担架旅客">-->
+                <!--</el-table-column>-->
+
                 <el-table-column
                   label="重点旅客总数">
                   <template slot-scope="scope">
@@ -312,6 +315,9 @@ export default {
     },
     closeFn () {
       this.closeAll()
+    },
+    tableRowClassName({row, rowIndex}) {
+       return rowIndex % 2 === 0 ? 'warning-row' : 'success-row'
     },
     //  全部弹窗关闭
     closeAll () {
@@ -590,6 +596,8 @@ export default {
               }
             }
           })
+        } else {
+          arr.push(str.match(reg))
         }
         //  软席  临候
         if (str.indexOf('软席') !== -1) {
@@ -649,8 +657,8 @@ export default {
     // this.checktoKen()
     this.getData()
     this.intervalFn()
-    // this.homepageTitle = '北京西站12306服务台'
-    this.homepageTitle = '北京西站036服务台'
+    this.homepageTitle = '北京西站12306服务台'
+    // this.homepageTitle = '北京西站036服务台'
     this.searchText = '搜索'
     this.findCurrentDay()
   }
@@ -662,7 +670,7 @@ export default {
   .homepage
     height 100%
     width 100%
-    background #5a6379
+    background #071321
     position relative
     overflow hidden
     .homepage-div
@@ -795,7 +803,7 @@ export default {
     top 0
     left 0
     overflow hidden
-    background rgba(000,000,000,.4)
+    background rgba(255,255,255,.1)
     height 100%
     width 100%
     z-index 111
@@ -828,19 +836,16 @@ export default {
 </style>
 <style>
   .el-table .warning {
-    background: #7e889f!important;
-  }
-  .el-table th, .el-table tr {
-    background-color: #636e8a!important;
+    background: rgba(41,174,241,.1)!important;
   }
   .el-table--enable-row-hover .el-table__body tr:hover>td{
-    background-color: #9099b1!important;
+    background-color: rgba(41,174,241,.6)!important;
   }
   .el-table td, .el-table th.is-leaf {
-    border-color: #5a6379!important;
+    border-color: #071321!important;
   }
   .el-table--border, .el-table--group {
-    background-color: #4e5870!important;
+    background-color: #071321!important;
     border: none!important;
   }
   .el-table .cell {
@@ -851,6 +856,15 @@ export default {
     background-color: transparent!important;
   }
   .el-table__empty-block {
-    background: #636e8a!important;
+    background: #071321!important;
+  }
+  .el-table .warning-row {
+    background: rgba(41,174,241,.4)!important;
+  }
+  .el-table .success-row {
+    background: rgba(41,174,241,.2)!important;
+  }
+  .el-table th, .el-table tr {
+    background-color: rgba(41,174,241,.6)!important;
   }
 </style>

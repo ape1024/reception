@@ -1,7 +1,7 @@
 <template>
   <div class="keyPassengers" @click.stop>
     <h4 class="keyPassengers-title">
-      {{keyPassengersTitle}}
+      {{cheCi}}{{keyPassengersTitle}}
     </h4>
     <div class="keyPassengers-subject">
       <ul class="homepage-condition-state">
@@ -170,7 +170,6 @@ export default {
   methods: {
     bookbuytimevisible (data) {
       // console.log(booter)
-      console.log(data)
       if (this.updataSwitch) {
         this.updataJl = data
         this.updataSwitch = false
@@ -225,12 +224,10 @@ export default {
           }
         })
       }
-      console.log(this.tableData)
       strecherNew = this.stretcher - stretcher
       wheelchairNew = this.wheelchair - wheelchair
       keynoteNew = this.keynote - keynote
       this.axios.post(addZdlkInfo(cheCi, this.riqi, strecherNew, wheelchairNew, keynoteNew), this.tableData).then((res) => {
-        console.log(res)
         if (res.data.code === 0) {
           this.$emit('keyupdate')
         }
@@ -241,7 +238,6 @@ export default {
     },
     bookbuytimeFn (data) {
       this.updataSwitch = true
-      console.log(this.updataJl, '1')
       if (this.updataJl) {
         if (this.updataJl === '提供担架') {
           this.stretcher -= 1
@@ -251,13 +247,11 @@ export default {
           this.keynote -= 1
         }
       }
-      console.log(data, '2')
       if (data === '提供担架') {
         this.stretcher += 1
       } else if (data === '提供轮椅') {
         this.wheelchair += 1
       } else if (data === '优先进站' || data === '便利出站' || data === '其他') {
-        console.log('111///')
         this.keynote += 1
       }
       let stretcher = 0
@@ -304,10 +298,10 @@ export default {
   },
   watch: {
     tableData (data) {
-      console.log(data)
     }
   },
   created () {
+    console.log(this.passengersData)
     this.keyPassengersTitle = '重点旅客'
     this.scanning = '扫码增加'
     this.increase = '手动增加'
@@ -335,7 +329,7 @@ export default {
     margin -300px 0 0 -600px
     overflow hidden
     border-radius 6px
-    background #5a6379
+    background #071321
     width 1200px
     .keyPassengers-title
       unitTitle()
