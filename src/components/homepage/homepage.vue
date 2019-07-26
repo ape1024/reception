@@ -11,8 +11,8 @@
              <el-input clearable size="medium" v-model="search" placeholder="请输入内容"></el-input>
            </div>
             <div class="homepage-search">
-              <el-button @click="searchFn" size="medium" type="primary">{{searchText}}</el-button>
-              <el-button @click="backtoPast" size="medium" type="success">回到当前时间</el-button>
+              <!--<el-button @click="searchFn" size="medium" type="primary">{{searchText}}</el-button>-->
+              <el-button @click="backtoPast" size="medium" type="primary">{{backtoPastText}}</el-button>
             </div>
           </div>
           <div class="homepage-condition-right">
@@ -63,6 +63,10 @@
             <div class="homepage-table-body" @mouseleave="changeCellleave" @mouseenter="changeCellenter">
               <el-table
                 :header-cell-style="{background:'rgba(41,174,241,.6)!important',color:'#fff'}"
+                v-loading="loading"
+                element-loading-text="拼命加载中"
+                element-loading-spinner="el-icon-loading"
+                element-loading-background="rgba(0, 0, 0, 0.8)"
                 :row-class-name="tableRowClassName"
                 :cell-class-name="changeCellStyle"
                 ref='table'
@@ -215,12 +219,14 @@ export default {
       wheelchair: 0,
       stretcher: 0,
       tableData: [],
+      tableDataTwo: [],
       trainDetailsData: [],
       platformData: [],
       passengersData: '',
       rollingIndex: '',
       homepageTitle: '',
       searchText: '',
+      backtoPastText: '',
       updatedSwitch: true,
       popupSwitch: false,
       behindSwitch: false,
@@ -229,6 +235,8 @@ export default {
       trainSwitch: false,
       passengersSwitch: false,
       trainMasterData: '',
+      loading: false,
+      loadingSwitch: true,
       //  打开弹窗 禁止去请求数据
       getDataSwitch: true,
       //  滚动条值 数组
@@ -252,7 +260,9 @@ export default {
   },
   methods: {
     backtoPast () {
-      this.rolling(this.rollingIndex)
+      this.search = ''
+      this.loadingSwitch = true
+      this.getData()
     },
     changeCellStyle (row, column, rowIndex, columnIndex) {
       //  车次
@@ -355,6 +365,9 @@ export default {
     },
     //  获取数据
     getData (parameter) {
+      if (this.loadingSwitch) {
+        this.loading = true
+      }
       let parameterData = !parameter ? '' : parameter
       this.axios.post(waitingRooms(parameterData)).then((response) => {
         // let switchBoer = false
@@ -401,7 +414,10 @@ export default {
           }
         })
         // console.log('take time : ' + (new Date().getTime() - time) + 'ms')
+        this.loading = false
+        this.loadingSwitch = false
         this.tableData = response.data.data
+        this.tableDataTwo = response.data.data
         //  拿到当前时间最近接近的值 将滚动条 滚到其对应索引位置
         if (this.searchSwitch) {
           this.rollingIndex = this.differenceValueArry.index
@@ -483,7 +499,6 @@ export default {
       let cheCi = row.cheCi
       this.rowCheCi = cheCi
       this.axios.post(waitingRoom(cheCi, date, item)).then((res) => {
-        console.log(res)
         this.trainMasterData = res.data.data[0]
         this.popupSwitch = true
         this.trainSwitch = true
@@ -522,11 +537,9 @@ export default {
     },
     differenceFn (row) {
       // this.axios
-      console.log('////')
       let planID = row.planID
       let cheCi = row.cheCi.replace(/\s*/g, '')
       this.rowCheCi = cheCi
-      console.log(row)
       if (planID) {
         // findHistoryLateTime
         this.axios.post(findHistoryLateTime(cheCi, planID)).then((res) => {
@@ -671,8 +684,33 @@ export default {
     }
   },
   watch: {
-    search () {
-      this.updatedSwitch = false
+    search (data, datatwo) {
+      if (data) {
+        //  处理一下大小写的问题
+        let newData = data.split('')
+        let string = ''
+        newData.forEach((val) => {
+          if (!Number(val)) {
+            string += val.toUpperCase()
+          } else {
+            string += val
+          }
+        })
+        this.tableData = []
+        this.tableDataTwo.forEach((val) => {
+          if (val.cheCi.indexOf(string) !== -1) {
+            this.tableData.push(val)
+          }
+        })
+        this.$refs.table.bodyWrapper.scrollTop = 0
+        this.updatedSwitch = false
+        this.searchSwitch = false
+      } else {
+        this.loadingSwitch = true
+        this.updatedSwitch = true
+        this.searchSwitch = true
+        this.getData()
+      }
     },
     popupSwitch (data) {
       this.updatedSwitch = false
@@ -698,6 +736,7 @@ export default {
     this.intervalFn()
     this.homepageTitle = '北京西站12306服务台'
     // this.homepageTitle = '北京西站036服务台'
+    this.backtoPastText = '回到当前'
     this.searchText = '搜索'
     this.findCurrentDay()
   }
