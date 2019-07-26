@@ -63,11 +63,11 @@ export default {
     this.folding = '立折车次: '
     this.continuous = '接续车次: '
     if (this.trainDetailsData) {
-      this.vehicleData = this.trainDetailsData.arrivalTrainCode
-      this.reconnectData = this.trainDetailsData.trainChongLian === 0 ? '否' : '是'
-      this.marshallingData = this.trainDetailsData.coachWay === 0 ? '正序' : '倒序'
-      this.groupingsData = this.trainDetailsData.couchCount
-      this.foldingData = '暂无'
+      this.vehicleData = this.trainDetailsData.carType
+      this.reconnectData = this.trainDetailsData.chongLian
+      this.marshallingData = this.trainDetailsData.cheXu
+      this.groupingsData = this.trainDetailsData.cheXiang
+      this.foldingData = this.trainDetailsData.trainMatch
     } else {
       this.vehicleData = '暂无'
       this.reconnectData = '暂无'
@@ -75,11 +75,6 @@ export default {
       this.groupingsData = '暂无'
       this.foldingData = '暂无'
     }
-
-    // this.marshallingData =
-    // this.reconnectData =
-    // this.marshallingData =
-    // this.groupingsData =
   }
 }
 </script>
@@ -104,6 +99,7 @@ export default {
       overflow hidden
       .detailsTrains-subject-li
         padding 20px 0
+        font-size 18px
         overflow hidden
   .close
     close()

@@ -50,7 +50,6 @@ export default {
     }
   },
   created () {
-    console.log(this.behindScheduleData)
     this.tableData = this.behindScheduleData
     this.behindScheduleTitle = '晚点历史数据'
   }
@@ -64,7 +63,7 @@ export default {
     top 50%
     left 50%
     margin -300px 0 0 -200px
-    background #4e5870
+    background #071321
     overflow hidden
     width 400px
     .behindSchedule-title

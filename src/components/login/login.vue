@@ -31,7 +31,6 @@ export default {
   },
   methods: {
     login () {
-      console.log('/...../')
       this.updateProjectAndUpdateLocal(100)
       this.$router.replace('/homepage')
     },

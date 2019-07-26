@@ -8,10 +8,11 @@
         <div class="homepage-condition">
           <div class="homepage-condition-left">
            <div class="homepage-input">
-             <el-input clearable size="small" v-model="search" placeholder="请输入内容"></el-input>
+             <el-input clearable size="medium" v-model="search" placeholder="请输入内容"></el-input>
            </div>
             <div class="homepage-search">
-              <el-button @click="searchFn" size="small" type="primary">{{searchText}}</el-button>
+              <el-button @click="searchFn" size="medium" type="primary">{{searchText}}</el-button>
+              <el-button @click="backtoPast" size="medium" type="success">回到当前时间</el-button>
             </div>
           </div>
           <div class="homepage-condition-right">
@@ -23,7 +24,7 @@
                 <img class="homepage-condition-state-img" src="../../common/img/keynote.png" alt="">
                 <div class="homepage-condition-state-input">
                   <el-input
-                    size="small"
+                    size="medium"
                     placeholder=""
                     v-model="keynote"
                     :disabled="true">
@@ -35,7 +36,7 @@
                 <img class="homepage-condition-state-img" src="../../common/img/wheelchair.png" alt="">
                 <div class="homepage-condition-state-input">
                   <el-input
-                    size="small"
+                    size="medium"
                     placeholder=""
                     v-model="wheelchair"
                     :disabled="true">
@@ -47,7 +48,7 @@
                 <img class="homepage-condition-state-img" src="../../common/img/stretcher.png" alt="">
                 <div class="homepage-condition-state-input">
                   <el-input
-                    size="small"
+                    size="medium"
                     placeholder=""
                     v-model="stretcher"
                     :disabled="true">
@@ -87,10 +88,10 @@
                 <el-table-column
                   label="站台">
                   <template slot-scope="scope">
-                    <div @click="platformFn(scope.row)" v-if="scope.row.ztHistoryNum" :class="{ noData: scope.row.ztHistoryNum }">
+                    <div @click="platformFn(scope.row)" v-if="scope.row.ztHistoryNum > 1" :class="{ noData: scope.row.ztHistoryNum }">
                       {{scope.row.zt}}
                     </div>
-                    <div v-if="!scope.row.ztHistoryNum">
+                    <div v-if="scope.row.ztHistoryNum <= 1">
                       {{scope.row.zt}}
                     </div>
                   </template>
@@ -202,7 +203,7 @@ import detailsTrains from './homepage-unit/detailsTrains'
 import trainConductor from './homepage-unit/trainConductor'
 import keyPassengers from './homepage-unit/keyPassengers'
 import { projectMixin } from '../../common/js/mixin'
-import { waitingRooms, waitingRoom, findCurrentDayZdlkInfo, findTrainInfo, findZtHistoryInfo, findzdlkInfo, findHistoryLateTime } from '../../api/url'
+import { waitingRooms, waitingRoom, findCurrentDayZdlkInfo, findZtHistoryInfo, findzdlkInfo, findHistoryLateTime } from '../../api/url'
 export default {
   name: 'homepage',
   mixins: [projectMixin],
@@ -250,6 +251,9 @@ export default {
     keyPassengers
   },
   methods: {
+    backtoPast () {
+      this.rolling(this.rollingIndex)
+    },
     changeCellStyle (row, column, rowIndex, columnIndex) {
       //  车次
       if (!row.row.cheCi && row.columnIndex === 1) {
@@ -316,8 +320,8 @@ export default {
     closeFn () {
       this.closeAll()
     },
-    tableRowClassName({row, rowIndex}) {
-       return rowIndex % 2 === 0 ? 'warning-row' : 'success-row'
+    tableRowClassName ({row, rowIndex}) {
+      return rowIndex % 2 === 0 ? 'warning-row' : 'success-row'
     },
     //  全部弹窗关闭
     closeAll () {
@@ -356,7 +360,7 @@ export default {
         // let switchBoer = false
         let time = new Date().getTime()
         response.data.data.forEach((val, index) => {
-          val.dateData = this.fmtDate(val.date, 1)
+          val.dateData = this.fmtDate(val.date, '')
           //  sendTrain 为true 发车车次   false 到达车次
           if (val.trainType === 1 || val.trainType === 3) {
             //  regulationsData
@@ -387,7 +391,6 @@ export default {
             let differenceValue = time - val.regulationsTime
             val.differenceValue = differenceValue < 0 ? Math.abs(differenceValue) : differenceValue
             // this.differenceValueArry.push(val.differenceValue)
-            // console.log(val.differenceValue)
             if (!this.differenceValueArry.value) {
               this.differenceValueArry.value = val.differenceValue
               this.differenceValueArry.index = index
@@ -420,7 +423,7 @@ export default {
       if (timestamp) {
         let time = new Date(timestamp)
         // let y = time.getFullYear()
-        let M = (time.getMonth() + 1) >= 10 ? (time.getMonth() + 1) : `0${(time.getMonth() + 1)}`
+        let M = (time.getMonth() + 1) >= 10 ? (time.getMonth() + 1) : `${(time.getMonth() + 1)}`
         let d = (time.getDate()) >= 10 ? (time.getDate()) : `0${(time.getDate())}`
         let h = (time.getHours()) >= 10 ? time.getHours() : `0${time.getHours()}`
         let m = (time.getMinutes()) >= 10 ? time.getMinutes() : `0${time.getMinutes()}`
@@ -450,22 +453,37 @@ export default {
       //  clearInterval(this.intervalFnD)
     },
     trainDetailsFn (data) {
-      let trainNumber = data.cheCi.replace(/\s*/g, '')
-      let riqi = data.date
-      this.rowCheCi = trainNumber
-      this.axios.post(findTrainInfo(trainNumber, riqi)).then((res) => {
-        if (res.data.code === 0) {
-          this.trainDetailsData = res.data.data
-          this.popupSwitch = true
-          this.detailsSwitch = true
-        }
-      })
+      let res = {
+        //  编组方向
+        cheXu: data.cheXu ? data.cheXu : '暂无',
+        //  编组数
+        cheXiang: data.cheXiang ? data.cheXiang : '暂无',
+        //  重连
+        chongLian: data.chongLian ? data.chongLian : '暂无',
+        //  立折
+        trainMatch: data.trainMatch ? data.trainMatch : '暂无',
+        //  车型
+        carType: data.carType ? data.carType : '暂无'
+      }
+      this.trainDetailsData = res
+      this.popupSwitch = true
+      this.detailsSwitch = true
+      // let fangXiang = data.fangXiang
+      // let trainNumber = data.cheCi.replace(/\s*/g, '')
+      // let riqi = data.date
+      // this.rowCheCi = trainNumber
+      // this.axios.post(findTrainInfo(trainNumber, riqi)).then((res) => {
+      //   if (res.data.code === 0) {
+      //
+      //   }
+      // })
     },
     trainMasterFn (row, item) {
       let date = row.date
       let cheCi = row.cheCi
       this.rowCheCi = cheCi
       this.axios.post(waitingRoom(cheCi, date, item)).then((res) => {
+        console.log(res)
         this.trainMasterData = res.data.data[0]
         this.popupSwitch = true
         this.trainSwitch = true
@@ -483,6 +501,17 @@ export default {
           if (res.data.data.data.length) {
             res.data.data.data.forEach((val, index) => {
               val.index = index + 1
+              val.oldData = true
+              if (val.qujian) {
+                if (val.qujian.indexOf('——') !== -1) {
+                  let qujianData = val.qujian.split('——')
+                  let qujianDataTwo = qujianData[qujianData.length - 1]
+                  val.qujian = qujianDataTwo
+                }
+              }
+              if (val.cx) {
+                val.cx = parseInt(val.cx)
+              }
             })
           }
           this.passengersData = res.data.data
@@ -493,9 +522,11 @@ export default {
     },
     differenceFn (row) {
       // this.axios
+      console.log('////')
       let planID = row.planID
       let cheCi = row.cheCi.replace(/\s*/g, '')
       this.rowCheCi = cheCi
+      console.log(row)
       if (planID) {
         // findHistoryLateTime
         this.axios.post(findHistoryLateTime(cheCi, planID)).then((res) => {
@@ -520,6 +551,11 @@ export default {
             this.popupSwitch = true
             this.behindSwitch = true
           }
+        })
+      } else {
+        this.$message({
+          message: '当前车次不在测试范围,请重新选择',
+          type: 'warning'
         })
       }
     },
@@ -607,7 +643,11 @@ export default {
           arr.push('临候')
         }
         if (arr && arr.length) {
-          return `${arr.join()}候车室`
+          if (arr.length === 1) {
+            return `${arr.join()}车室`
+          } else {
+            return `${arr.join()}候车室`
+          }
         } else {
           return ``
         }
@@ -623,7 +663,6 @@ export default {
       let riqi = new Date(new Date().toLocaleDateString()).getTime()
       this.axios.post(findCurrentDayZdlkInfo(riqi)).then((res) => {
         if (res.data.code === 0) {
-          console.log(res)
           this.keynote = res.data.data.zhongdian
           this.wheelchair = res.data.data.lunyi
           this.stretcher = res.data.data.danjia
@@ -680,7 +719,7 @@ export default {
         font-weight bold
         color #fff
         text-align center
-        font-size 24px
+        font-size 30px
       .homepage-subject
         overflow hidden
         position relative
@@ -688,6 +727,7 @@ export default {
       .homepage-condition
         position relative
         display flex
+        font-size 20px!important
         line-height 56px
         margin-bottom 30px
         overflow hidden
@@ -701,12 +741,13 @@ export default {
             float left
             height 28px
             box-sizing border-box
-            width 50%
+            margin-right 20px
+            width 40%
           .homepage-search
             float left
             text-align center
             box-sizing border-box
-            width 20%
+            width 50%
         .homepage-condition-right
           overflow hidden
           display flex
@@ -715,7 +756,8 @@ export default {
           .homepage-condition-month
             color #fff
             margin-right 20px
-            width 100px
+            width 140px
+            font-size 24px
             font-weight bold
           .homepage-condition-state
             width 100%
@@ -754,6 +796,7 @@ export default {
              border-right none
         .homepage-table-body
            position relative
+           font-size 24px!important
            overflow hidden
            .homepage-table-body-ul
              overflow hidden
@@ -850,6 +893,7 @@ export default {
   }
   .el-table .cell {
     color: #fff!important;
+    font-size: 18px;
     text-align: center!important;
   }
   .el-table--border::after, .el-table--group::after, .el-table::before {
@@ -866,5 +910,23 @@ export default {
   }
   .el-table th, .el-table tr {
     background-color: rgba(41,174,241,.6)!important;
+  }
+  .el-table th>.cell {
+    font-size: 18px;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: #a1a3a9;
+    border-radius: 6px;
+  }
+  .el-input--medium .el-input__inner {
+    font-size: 18px;
+  }
+  .el-button--medium {
+    padding: 7px 20px;
+    font-size: 18px;
   }
 </style>

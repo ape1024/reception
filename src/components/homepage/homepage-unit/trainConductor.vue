@@ -60,7 +60,6 @@ export default {
     }
   },
   created () {
-    console.log(this.trainMasterData)
     this.detailsTrainsTitle = '列车长详情'
     this.conductor = '列车长: '
     this.information = '联系方式: '
@@ -94,7 +93,7 @@ export default {
     top 50%
     left 50%
     margin -180px 0 0 -250px
-    background #4e5870
+    background #071321
     color #fff
     width 500px
     border-radius 6px
@@ -108,6 +107,7 @@ export default {
       overflow hidden
       .detailsTrains-subject-li
         padding 20px 0
+        font-size 18px
         overflow hidden
   .close
     close()

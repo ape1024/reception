@@ -66,7 +66,6 @@ export default {
       }
       this.tableData.push(obj)
     })
-    console.log(this.tableData)
   }
 }
 </script>
@@ -80,7 +79,7 @@ export default {
     margin -300px 0 0 -170px
     overflow hidden
     border-radius 6px
-    background #4e5870
+    background #071321
     width 300px
     .behindSchedule-title
       unitTitle()

@@ -9,26 +9,26 @@
           <!--重点-->
           <img class="homepage-condition-state-img" src="../../../common/img/keynote.png" alt="">
           <div class="homepage-condition-state-input">
-            <el-input-number size="small" v-model="keynote" :min="keynoteMin"></el-input-number>
+            <el-input-number size="medium" v-model="keynote" :min="keynoteMin"></el-input-number>
           </div>
         </li>
         <li class="homepage-condition-state-li">
           <!--轮椅-->
           <img class="homepage-condition-state-img" src="../../../common/img/wheelchair.png" alt="">
           <div class="homepage-condition-state-input">
-            <el-input-number size="small" v-model="wheelchair" :min="wheelchairMin"></el-input-number>
+            <el-input-number size="medium" v-model="wheelchair" :min="wheelchairMin"></el-input-number>
           </div>
         </li>
         <li class="homepage-condition-state-li">
           <!--担架-->
           <img class="homepage-condition-state-img" src="../../../common/img/stretcher.png" alt="">
           <div class="homepage-condition-state-input">
-            <el-input-number size="small" v-model="stretcher" :min="stretcherMin"></el-input-number>
+            <el-input-number size="medium" v-model="stretcher" :min="stretcherMin"></el-input-number>
           </div>
         </li>
         <li class="homepage-condition-state-li homepage-condition-state-right">
-          <el-button size="small" type="info" disabled>{{scanning}}</el-button>
-          <el-button size="small" type="primary" @click="addLine">{{increase}}</el-button>
+          <el-button size="medium" type="info" disabled>{{scanning}}</el-button>
+          <el-button size="medium" type="primary" @click="addLine">{{increase}}</el-button>
         </li>
       </ul>
       <div class="homepage-buttons">
@@ -37,34 +37,40 @@
       </div>
       <div class="keyPassengers-body">
         <el-table
+          :row-class-name="tableRowClassName"
+          @cell-click="updataFn"
           :header-cell-style="{background:'#3c4761',color:'#fff'}"
           border
           height="360"
           :data="tableData"
           style="width: 100%">
-          <el-table-column prop="index" label="序号" width="80">
+          <el-table-column prop="index" label="序号" width="80" >
             <template slot-scope="scope">
-              <el-input size="mini" v-model="scope.row.index" placeholder="序号"></el-input>
+              <el-input v-if="!scope.row.oldData" size="mini" v-model="scope.row.index" placeholder=""></el-input>
+              <span v-if="scope.row.oldData">{{scope.row.index}}</span>
             </template>
           </el-table-column>
           <el-table-column prop="lkName" label="姓名" width="100">
             <template slot-scope="scope">
-              <el-input size="mini" v-model="scope.row.lkName" placeholder="姓名"></el-input>
+              <el-input v-if="!scope.row.oldData" size="mini" v-model="scope.row.lkName" placeholder=""></el-input>
+              <span v-if="scope.row.oldData">{{scope.row.lkName}}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="sex" label="性别" width="100">
+          <el-table-column prop="sex" label="性别" width="80">
             <template slot-scope="scope">
-              <el-input size="mini" v-model="scope.row.sex" placeholder="性别"></el-input>
+              <el-input v-if="!scope.row.oldData" size="mini" v-model="scope.row.sex" placeholder=""></el-input>
+              <span v-if="scope.row.oldData" >{{scope.row.sex}}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="phoneNo" label="电话">
+          <el-table-column prop="phoneNo" label="电话" width="140">
             <template slot-scope="scope">
-              <el-input size="mini" v-model="scope.row.phoneNo" placeholder="电话"></el-input>
+              <el-input v-if="!scope.row.oldData" size="mini" v-model="scope.row.phoneNo" placeholder=""></el-input>
+              <span v-if="scope.row.oldData" >{{scope.row.phoneNo}}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="fuWu" label="服务类型">
+          <el-table-column prop="fuWu" label="服务类型" width="120">
             <template slot-scope="scope">
-              <el-select  @focus="bookbuytimevisible(scope.row.fuWu)" @change="bookbuytimeFn" size="mini" v-model="scope.row.fuWu" placeholder="服务类型">
+              <el-select  v-if="!scope.row.oldData" @focus="bookbuytimevisible(scope.row.fuWu)" @change="bookbuytimeFn" size="mini" v-model="scope.row.fuWu" placeholder="">
                 <el-option
                   v-for="item in provide"
                   :key="item.value"
@@ -72,11 +78,12 @@
                   :value="item.value">
                 </el-option>
               </el-select>
+              <span v-if="scope.row.oldData" >{{scope.row.fuWu}}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="lkStyle" label="旅客类型">
+          <el-table-column prop="lkStyle" label="旅客类型" width="120">
             <template slot-scope="scope">
-              <el-select  size="mini" v-model="scope.row.lkStyle" placeholder="旅客类型">
+              <el-select v-if="!scope.row.oldData" size="mini" v-model="scope.row.lkStyle" placeholder="">
                 <el-option
                   v-for="item in options"
                   :key="item.value"
@@ -84,32 +91,37 @@
                   :value="item.value">
                 </el-option>
               </el-select>
+              <span v-if="scope.row.oldData">{{scope.row.lkStyle}}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="qujian" label="乘车区间">
+          <el-table-column prop="qujian" label="乘车区间" width="120">
             <template slot-scope="scope">
-              <el-input size="mini" v-model="scope.row.qujian" placeholder="乘车区间"></el-input>
+              <el-input v-if="!scope.row.oldData" size="mini" v-model="scope.row.qujian" placeholder=""></el-input>
+              <span v-if="scope.row.oldData">{{scope.row.qujian}}</span>
             </template>
           </el-table-column>
           <el-table-column prop="cx" label="车厢" width="80">
             <template slot-scope="scope">
-              <el-input size="mini" v-model="scope.row.cx" placeholder="车厢"></el-input>
+              <el-input v-if="!scope.row.oldData" size="mini" v-model="scope.row.cx" placeholder=""></el-input>
+              <span v-if="scope.row.oldData">{{scope.row.cx}}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="sfz" label="身份证">
-            <template slot-scope="scope">
-              <el-input size="mini" v-model="scope.row.sfz" placeholder="身份证"></el-input>
-            </template>
-          </el-table-column>
+          <!--<el-table-column prop="sfz" label="身份证">-->
+            <!--<template slot-scope="scope">-->
+              <!--<el-input size="mini" v-model="scope.row.sfz" placeholder="身份证"></el-input>-->
+            <!--</template>-->
+          <!--</el-table-column>-->
           <el-table-column prop="content" label="备注">
             <template slot-scope="scope">
               <el-input
+                v-if="!scope.row.oldData"
                 size="mini"
                 type="textarea"
                 :rows="3"
-                placeholder="备注"
+                placeholder=""
                 v-model="scope.row.content">
               </el-input>
+              <span v-if="scope.row.oldData">{{scope.row.content}}</span>
             </template>
           </el-table-column>
         </el-table>
@@ -168,8 +180,11 @@ export default {
     }
   },
   methods: {
+    updataFn (row, column, cell, event) {
+      row.oldData = false
+      // data.oldData = false
+    },
     bookbuytimevisible (data) {
-      // console.log(booter)
       if (this.updataSwitch) {
         this.updataJl = data
         this.updataSwitch = false
@@ -190,7 +205,8 @@ export default {
         qujian: '',
         cx: '',
         sfz: '',
-        content: ''
+        content: '',
+        oldData: false
       }
       //  添加新的行数
       this.tableData.push(newValue)
@@ -233,6 +249,9 @@ export default {
         }
       })
     },
+    tableRowClassName ({row, rowIndex}) {
+      return rowIndex % 2 === 0 ? 'warning-row' : 'success-row'
+    },
     close () {
       this.$emit('close')
     },
@@ -263,7 +282,6 @@ export default {
         } else if (val.fuWu === '提供担架') {
           wheelchair += 1
         } else if (val.fuWu === '优先进站' || val.fuWu === '便利出站' || val.fuWu === '其他') {
-          console.log(data)
           keynote += 1
         }
       })
@@ -301,7 +319,6 @@ export default {
     }
   },
   created () {
-    console.log(this.passengersData)
     this.keyPassengersTitle = '重点旅客'
     this.scanning = '扫码增加'
     this.increase = '手动增加'
@@ -326,11 +343,11 @@ export default {
     position absolute
     top 50%
     left 50%
-    margin -300px 0 0 -600px
+    margin -300px 0 0 -700px
     overflow hidden
     border-radius 6px
     background #071321
-    width 1200px
+    width 1400px
     .keyPassengers-title
       unitTitle()
     .keyPassengers-subject
@@ -353,6 +370,7 @@ export default {
           width 48px
         .homepage-condition-state-input
           display inline-block
+          margin-top 5px
           width 200px
       .homepage-buttons
         position relative
