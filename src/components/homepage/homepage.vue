@@ -7,9 +7,9 @@
       <div class="homepage-subject">
         <div class="homepage-condition">
           <div class="homepage-condition-left">
-           <div class="homepage-input">
-             <el-input clearable size="medium" v-model="search" placeholder="请输入内容"></el-input>
-           </div>
+            <div class="homepage-input">
+              <el-input clearable size="medium" v-model="search" placeholder="请输入内容"></el-input>
+            </div>
             <div class="homepage-search">
               <!--<el-button @click="searchFn" size="medium" type="primary">{{searchText}}</el-button>-->
               <el-button @click="backtoPast" size="medium" type="primary">{{backtoPastText}}</el-button>
@@ -21,7 +21,7 @@
             <ul class="homepage-condition-state">
               <li class="homepage-condition-state-li">
                 <!--重点-->
-                <img class="homepage-condition-state-img" src="../../common/img/keynote.png" alt="">
+                <span :class="keystate ? 'keystateImgTwo' : 'keystateImg'" @click="preparationZ" class="homepage-condition-state-img"></span>
                 <div class="homepage-condition-state-input">
                   <el-input
                     size="medium"
@@ -33,7 +33,7 @@
               </li>
               <li class="homepage-condition-state-li">
                 <!--轮椅-->
-                <img class="homepage-condition-state-img" src="../../common/img/wheelchair.png" alt="">
+                <span :class="wheelchairstate ? 'wheelchairstateImgTwo' : 'wheelchairstateImg'" @click="preparationL" class="homepage-condition-state-img"></span>
                 <div class="homepage-condition-state-input">
                   <el-input
                     size="medium"
@@ -45,7 +45,7 @@
               </li>
               <li class="homepage-condition-state-li">
                 <!--担架-->
-                <img class="homepage-condition-state-img" src="../../common/img/stretcher.png" alt="">
+                <span @click="preparationD" :class="stretcherstate ? 'stretcherstateImgTwo' : 'stretcherstateImg'" class="homepage-condition-state-img"></span>
                 <div class="homepage-condition-state-input">
                   <el-input
                     size="medium"
@@ -160,16 +160,16 @@
                 </el-table-column>
 
                 <!--<el-table-column-->
-                  <!--prop="zhongdianNum"-->
-                  <!--label="重点人员">-->
+                <!--prop="zhongdianNum"-->
+                <!--label="重点人员">-->
                 <!--</el-table-column>-->
                 <!--<el-table-column-->
-                  <!--prop="lunyiNum"-->
-                  <!--label="轮椅旅客">-->
+                <!--prop="lunyiNum"-->
+                <!--label="轮椅旅客">-->
                 <!--</el-table-column>-->
                 <!--<el-table-column-->
-                  <!--prop="danjiaNum"-->
-                  <!--label="担架旅客">-->
+                <!--prop="danjiaNum"-->
+                <!--label="担架旅客">-->
                 <!--</el-table-column>-->
 
                 <el-table-column
@@ -248,7 +248,10 @@ export default {
       rowCheCi: '',
       moveOut: true,
       passengersrunId: {},
-      behindScheduleData: []
+      behindScheduleData: [],
+      keystate: false,
+      wheelchairstate: false,
+      stretcherstate: false
     }
   },
   components: {
@@ -259,8 +262,183 @@ export default {
     keyPassengers
   },
   methods: {
+    preparationZ () {
+      this.tableData = []
+      if (!this.keystate) {
+        this.keystate = true
+        if (this.search) {
+          this.preparationFn()
+        } else {
+          this.preparationtwoFn()
+        }
+      } else {
+        if (this.search) {
+          for (let i = 0; i < this.tableDataTwo.length; i++) {
+            if (this.tableDataTwo[i].cheCi.indexOf(this.search) !== -1) {
+              if (this.wheelchairstate || this.stretcherstate) {
+                if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
+                  this.tableData.push(this.tableDataTwo[i])
+                  continue
+                }
+                if (this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) {
+                  this.tableData.push(this.tableDataTwo[i])
+                  continue
+                }
+              } else {
+                this.tableData.push(this.tableDataTwo[i])
+              }
+            }
+          }
+        } else {
+          for (let i = 0; i < this.tableDataTwo.length; i++) {
+            if (this.wheelchairstate || this.stretcherstate) {
+              if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+              if (this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+            } else {
+              this.tableData.push(this.tableDataTwo[i])
+            }
+          }
+        }
+        this.keystate = false
+      }
+    },
+    preparationL () {
+      this.tableData = []
+      if (!this.wheelchairstate) {
+        this.wheelchairstate = true
+        if (this.search) {
+          this.preparationFn()
+        } else {
+          this.preparationtwoFn()
+        }
+      } else {
+        if (this.search) {
+          for (let i = 0; i < this.tableDataTwo.length; i++) {
+            if (this.tableDataTwo[i].cheCi.indexOf(this.search) !== -1) {
+              if (this.keystate || this.stretcherstate) {
+                if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
+                  this.tableData.push(this.tableDataTwo[i])
+                  continue
+                }
+                if (this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) {
+                  this.tableData.push(this.tableDataTwo[i])
+                  continue
+                }
+              } else {
+                this.tableData.push(this.tableDataTwo[i])
+              }
+            }
+          }
+        } else {
+          for (let i = 0; i < this.tableDataTwo.length; i++) {
+            if (this.keystate || this.stretcherstate) {
+              if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+              if (this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+            } else {
+              this.tableData.push(this.tableDataTwo[i])
+            }
+          }
+        }
+        this.wheelchairstate = false
+      }
+    },
+    preparationD () {
+      this.tableData = []
+      if (!this.stretcherstate) {
+        this.stretcherstate = true
+        if (this.search) {
+          this.preparationFn()
+        } else {
+          this.preparationtwoFn()
+        }
+      } else {
+        if (this.search) {
+          for (let i = 0; i < this.tableDataTwo.length; i++) {
+            if (this.tableDataTwo[i].cheCi.indexOf(this.search) !== -1) {
+              if (this.wheelchairstate || this.keystate) {
+                if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
+                  this.tableData.push(this.tableDataTwo[i])
+                  continue
+                }
+                if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
+                  this.tableData.push(this.tableDataTwo[i])
+                  continue
+                }
+              } else {
+                this.tableData.push(this.tableDataTwo[i])
+              }
+            }
+          }
+        } else {
+          for (let i = 0; i < this.tableDataTwo.length; i++) {
+            if (this.wheelchairstate || this.keystate) {
+              if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+              if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+            } else {
+              this.tableData.push(this.tableDataTwo[i])
+            }
+          }
+        }
+        this.stretcherstate = false
+      }
+    },
+    preparationFn () {
+      for (let i = 0; i < this.tableDataTwo.length; i++) {
+        if (this.tableDataTwo[i].cheCi.indexOf(this.search) !== -1) {
+          if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
+            this.tableData.push(this.tableDataTwo[i])
+            continue
+          }
+          if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
+            this.tableData.push(this.tableDataTwo[i])
+            continue
+          }
+          if (this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) {
+            this.tableData.push(this.tableDataTwo[i])
+            continue
+          }
+        }
+      }
+    },
+    preparationtwoFn () {
+      for (let i = 0; i < this.tableDataTwo.length; i++) {
+        if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
+          this.tableData.push(this.tableDataTwo[i])
+          continue
+        }
+        if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
+          this.tableData.push(this.tableDataTwo[i])
+          continue
+        }
+        if (this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) {
+          this.tableData.push(this.tableDataTwo[i])
+          continue
+        }
+      }
+    },
     backtoPast () {
       this.search = ''
+      this.keystate = false
+      this.wheelchairstate = false
+      this.stretcherstate = false
       this.loadingSwitch = true
       this.getData()
     },
@@ -416,8 +594,14 @@ export default {
         // console.log('take time : ' + (new Date().getTime() - time) + 'ms')
         this.loading = false
         this.loadingSwitch = false
-        this.tableData = response.data.data
-        this.tableDataTwo = response.data.data
+        let resData = response.data.data
+        if (!this.keystate && !this.wheelchairstate && !this.stretcherstate) {
+          this.tableData = resData
+        } else {
+          this.tableData = []
+          this.preparationtwoFn()
+        }
+        this.tableDataTwo = resData
         //  拿到当前时间最近接近的值 将滚动条 滚到其对应索引位置
         if (this.searchSwitch) {
           this.rollingIndex = this.differenceValueArry.index
@@ -592,10 +776,11 @@ export default {
           //  再这里将 scrollTop 存入 scrollSwitch中
           // this.scrollSwitch.push(this.$refs.table.bodyWrapper.scrollTop)
           this.getData()
+          this.findCurrentDay()
         }
         // clearInterval(time)
         this.month = this.fmtDate((new Date()).getTime(), 3)
-      }, 60000)
+      }, 10000)
     },
     updateFn () {
       this.getData(this.search)
@@ -667,10 +852,10 @@ export default {
       }
     },
     changeCellenter () {
-      this.moveOut = false
+      // this.moveOut = false
     },
     changeCellleave () {
-      this.moveOut = true
+      // this.moveOut = true
     },
     findCurrentDay () {
       let riqi = new Date(new Date().toLocaleDateString()).getTime()
@@ -686,6 +871,7 @@ export default {
   watch: {
     search (data, datatwo) {
       if (data) {
+        console.log(data)
         //  处理一下大小写的问题
         let newData = data.split('')
         let string = ''
@@ -697,11 +883,26 @@ export default {
           }
         })
         this.tableData = []
-        this.tableDataTwo.forEach((val) => {
-          if (val.cheCi.indexOf(string) !== -1) {
-            this.tableData.push(val)
+        for (let i = 0; i < this.tableDataTwo.length; i++) {
+          if (this.tableDataTwo[i].cheCi.indexOf(string) !== -1) {
+            if (this.keystate || this.wheelchairstate || this.stretcherstate) {
+              if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+              if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+              if (this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) {
+                this.tableData.push(this.tableDataTwo[i])
+                continue
+              }
+            } else {
+              this.tableData.push(this.tableDataTwo[i])
+            }
           }
-        })
+        }
         this.$refs.table.bodyWrapper.scrollTop = 0
         this.updatedSwitch = false
         this.searchSwitch = false
@@ -715,10 +916,15 @@ export default {
     popupSwitch (data) {
       this.updatedSwitch = false
       if (data) {
-        this.getDataSwitch = false
+        this.updatedSwitch = false
       } else {
-        this.getDataSwitch = true
+        this.updatedSwitch = true
       }
+      // if (data) {
+      //   this.getDataSwitch = false
+      // } else {
+      //   this.getDataSwitch = true
+      // }
     },
     month () {
       this.findCurrentDay()
@@ -809,6 +1015,7 @@ export default {
             width 33%
             .homepage-condition-state-img
               display inline-block
+              background-size 100% 100%
               margin-right 20px
               vertical-align middle
               height 40px
@@ -832,38 +1039,38 @@ export default {
             overflow hidden
             border 1px solid $border-color
           .homepage-table-header-ul li:last-child
-             border-right none
+            border-right none
         .homepage-table-body
-           position relative
-           font-size 24px!important
-           overflow hidden
-           .homepage-table-body-ul
-             overflow hidden
-             max-height 300px
-             overflow-y auto
-             box-sizing border-box
-             position relative
-             border 1px solid $border-color
-             border-top none
-             width 100%
-             .homepage-table-body-li
-               overflow hidden
-               height 35px
-               box-sizing border-box
-               border-bottom 1px solid $border-color
-               width 100%
-            .homepage-table-body-ul .homepage-table-body-li:last-child
-                border-bottom none
-              .homepage-table-body-li-ul
-                position relative
-                font-size 12px
-                height 35px
-                overflow hidden
-              .homepage-table-body-li-ul li
-                text-align center
-                border-right 1px solid $border-color
-               .homepage-table-body-li-ul li:last-child
-                 border none
+          position relative
+          font-size 24px!important
+          overflow hidden
+          .homepage-table-body-ul
+            overflow hidden
+            max-height 300px
+            overflow-y auto
+            box-sizing border-box
+            position relative
+            border 1px solid $border-color
+            border-top none
+            width 100%
+            .homepage-table-body-li
+              overflow hidden
+              height 35px
+              box-sizing border-box
+              border-bottom 1px solid $border-color
+              width 100%
+          .homepage-table-body-ul .homepage-table-body-li:last-child
+            border-bottom none
+          .homepage-table-body-li-ul
+            position relative
+            font-size 12px
+            height 35px
+            overflow hidden
+          .homepage-table-body-li-ul li
+            text-align center
+            border-right 1px solid $border-color
+          .homepage-table-body-li-ul li:last-child
+            border none
   .homepage-table-liOne
     height 36px
     line-height 36px
@@ -915,6 +1122,18 @@ export default {
     text-decoration underline
   .blueSpan
     margin-right 4px
+  .keystateImg
+    background url("../../common/img/keynote.png")
+  .keystateImgTwo
+    background url("../../common/img/keynoteTWo.png")
+  .wheelchairstateImg
+    background url("../../common/img/wheelchair.png")
+  .wheelchairstateImgTwo
+    background url("../../common/img/wheelchairTWo.png")
+  .stretcherstateImg
+    background url("../../common/img/stretcher.png")
+  .stretcherstateImgTwo
+    background url("../../common/img/stretcherTwo.png")
 </style>
 <style>
   .el-table .warning {
