@@ -27,3 +27,7 @@ export const addZdlkInfo = (cheCi, riqi, danjia, lunyi, zhongdian) => {
 export const findHistoryLateTime = (trainNumber, planId) => {
   return `${Test}/waitingRoom/findHistoryLateTime?trainNumber=${trainNumber}&planId=${planId}`
 }
+
+export const findStopOverStations = (runid) => {
+  return `${Test}/travelService/findStopOverStations?runId=${runid}`
+}

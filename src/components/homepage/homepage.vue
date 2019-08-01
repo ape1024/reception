@@ -71,25 +71,29 @@
                 :cell-class-name="changeCellStyle"
                 ref='table'
                 :data="tableData"
-                height="500"
+                height="530"
                 border
                 style="width: 100%">
                 <el-table-column
+                  width="120"
                   prop="dateData"
                   label="日期">
                 </el-table-column>
                 <el-table-column
                   prop="cheCi"
+                  width="150"
                   label="车次">
                   <template slot-scope="scope">
-                    <span @click="spanFn" :class="cheCimodule(scope.row.trainType)">{{scope.row.cheCi}}</span>
+                    <span class="spantrainType" @click="spanFn(scope.row)" :class="cheCimodule(scope.row.trainType)">{{scope.row.cheCi}}{{scope.row.carType}}</span>
                   </template>
                 </el-table-column>
                 <el-table-column
+                  width="140"
                   prop="waiting"
                   label="候车室">
                 </el-table-column>
                 <el-table-column
+                  width="100"
                   label="站台">
                   <template slot-scope="scope">
                     <div @click="platformFn(scope.row)" v-if="scope.row.ztHistoryNum > 1" :class="{ noData: scope.row.ztHistoryNum }">
@@ -102,6 +106,7 @@
                 </el-table-column>
 
                 <el-table-column
+                  width="140"
                   label="图定到发">
                   <template slot-scope="scope">
                     <div v-if="scope.row.difference" @click="differenceFn(scope.row)">
@@ -114,6 +119,7 @@
                 </el-table-column>
 
                 <el-table-column
+                  width="140"
                   label="实际到发">
                   <template slot-scope="scope">
                     <div>
@@ -122,6 +128,7 @@
                   </template>
                 </el-table-column>
                 <el-table-column
+                  width="120"
                   label="列车详情">
                   <template slot-scope="scope">
                     <div class="blue" @click="trainDetailsFn(scope.row)">
@@ -130,6 +137,7 @@
                   </template>
                 </el-table-column>
                 <el-table-column
+                  width="100"
                   label="重点车">
                   <template slot-scope="scope">
                     <div>
@@ -138,6 +146,7 @@
                   </template>
                 </el-table-column>
                 <el-table-column
+                  width="150"
                   prop="trainMaster"
                   label="列车长">
                   <template slot-scope="scope">
@@ -146,36 +155,40 @@
                     </div>
                   </template>
                 </el-table-column>
-                <el-table-column
-                  prop="totalDepartNum"
-                  label="上车人数">
-                </el-table-column>
-                <el-table-column
-                  prop="totalArriveNum"
-                  label="下车人数">
-                </el-table-column>
-                <el-table-column
-                  prop="totalTransferNum"
-                  label="中转人数">
-                </el-table-column>
+                <!--<el-table-column-->
+                  <!--width="120"-->
+                  <!--prop="totalDepartNum"-->
+                  <!--label="上车人数">-->
+                <!--</el-table-column>-->
+                <!--<el-table-column-->
+                  <!--width="120"-->
+                  <!--prop="totalArriveNum"-->
+                  <!--label="下车人数">-->
+                <!--</el-table-column>-->
+                <!--<el-table-column-->
+                  <!--width="120"-->
+                  <!--prop="totalTransferNum"-->
+                  <!--label="中转人数">-->
+                <!--</el-table-column>-->
 
-                <!--<el-table-column-->
-                <!--prop="zhongdianNum"-->
-                <!--label="重点人员">-->
-                <!--</el-table-column>-->
-                <!--<el-table-column-->
-                <!--prop="lunyiNum"-->
-                <!--label="轮椅旅客">-->
-                <!--</el-table-column>-->
-                <!--<el-table-column-->
-                <!--prop="danjiaNum"-->
-                <!--label="担架旅客">-->
-                <!--</el-table-column>-->
+                <el-table-column
+                prop="zhongdianNum"
+                label="重点人员">
+                </el-table-column>
+                <el-table-column
+                prop="lunyiNum"
+                label="轮椅旅客">
+                </el-table-column>
+                <el-table-column
+                prop="danjiaNum"
+                label="担架旅客">
+                </el-table-column>
 
                 <el-table-column
                   label="重点旅客总数">
                   <template slot-scope="scope">
-                    <span @click="keyCustomerAccountFn(scope.row)" class="blue">{{scope.row.zdlkNum}}</span>
+                    <span v-if="!scope.row.zdlkSwith" @click="keyCustomerAccountFn(scope.row)" class="blue">{{scope.row.zdlkNum}}</span>
+                    <p :key="index" class="blue" @click="keyCustomerAccountFn(scope.row)" v-if="scope.row.zdlkSwith" v-for="(item, index) in scope.row.zdlk">{{item.name}} {{item.phoneNo}}</p>
                   </template>
                 </el-table-column>
               </el-table>
@@ -196,7 +209,12 @@
       <trainConductor :rowCheCi="rowCheCi" :trainMasterData="trainMasterData" v-if="trainSwitch" @close="closeFn"></trainConductor>
       <!--重点旅客-->
       <keyPassengers :passengersrunId="passengersrunId" :passengersData="passengersData" v-if="passengersSwitch" @close="closeFn" @keyupdate="updateFn"></keyPassengers>
+      <!--途径车站-->
+      <!--channelData-->
+      <channel :rowCheCi="rowCheCi" :channelData="channelData" v-if="channelSwitch" @close="closeFn"></channel>
     </div>
+    <!--提醒 重点人数-->
+    <newPassengers v-if="newPassengersSwitch" :newPassengersData="newPassengersData" @close="closeFn" @examine="examineFn"></newPassengers>
   </div>
 </template>
 
@@ -206,8 +224,11 @@ import platformChange from './homepage-unit/platformChange'
 import detailsTrains from './homepage-unit/detailsTrains'
 import trainConductor from './homepage-unit/trainConductor'
 import keyPassengers from './homepage-unit/keyPassengers'
+import channel from './homepage-unit/channel'
+import newPassengers from './homepage-unit/newPassengers'
+import musicTwo from '../../common/music/music.mp3'
 import { projectMixin } from '../../common/js/mixin'
-import { waitingRooms, waitingRoom, findCurrentDayZdlkInfo, findZtHistoryInfo, findzdlkInfo, findHistoryLateTime } from '../../api/url'
+import { waitingRooms, waitingRoom, findCurrentDayZdlkInfo, findZtHistoryInfo, findzdlkInfo, findHistoryLateTime, findStopOverStations } from '../../api/url'
 export default {
   name: 'homepage',
   mixins: [projectMixin],
@@ -234,7 +255,9 @@ export default {
       detailsSwitch: false,
       trainSwitch: false,
       passengersSwitch: false,
+      channelSwitch: false,
       trainMasterData: '',
+      channelData: '',
       loading: false,
       loadingSwitch: true,
       //  打开弹窗 禁止去请求数据
@@ -251,7 +274,16 @@ export default {
       behindScheduleData: [],
       keystate: false,
       wheelchairstate: false,
-      stretcherstate: false
+      stretcherstate: false,
+      srcMusic: musicTwo,
+      audio: '',
+      promptIdentification: {
+        runid: '',
+        play: false
+      },
+      keyPoints: true,
+      newPassengersData: '',
+      newPassengersSwitch: false
     }
   },
   components: {
@@ -259,9 +291,42 @@ export default {
     platformChange,
     detailsTrains,
     trainConductor,
-    keyPassengers
+    keyPassengers,
+    channel,
+    newPassengers
   },
   methods: {
+    examineFn (data) {
+      this.keyCustomerAccountFn(data)
+      this.newPassengersSwitch = false
+    },
+    newPassengersFn (data) {
+      this.popupSwitch = true
+      this.newPassengersSwitch = true
+      this.newPassengersData = data
+    },
+    programme (data, item) {
+      let timeDifference = data.trainType === 1 ? parseInt((data.realFaCheTime - item) / 1000) : parseInt((data.realDaoDaTime - item) / 1000)
+      let diversity = data.trainType === 1 ? 40 * 60 : 20 * 60
+      let timediversity = timeDifference - diversity
+      if (timeDifference > 0 && timediversity > 0 && timediversity <= 30 && this.keyPoints) {
+        this.keyPoints = false
+        this.audio.play()
+        this.$confirm('是否查询重点旅客情况?', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.newPassengersFn(data)
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消'
+          })
+          this.keyPoints = true
+        })
+      }
+    },
     preparationZ () {
       this.tableData = []
       if (!this.keystate) {
@@ -273,8 +338,25 @@ export default {
         }
       } else {
         if (this.search) {
+          let newData = this.search.split('')
+          let string = ''
+          newData.forEach((val) => {
+            if (!Number(val)) {
+              string += val.toUpperCase()
+            } else {
+              string += val
+            }
+          })
           for (let i = 0; i < this.tableDataTwo.length; i++) {
-            if (this.tableDataTwo[i].cheCi.indexOf(this.search) !== -1) {
+            let pushSwitch = false
+            if (this.tableDataTwo[i].zdlk.length) {
+              this.tableDataTwo[i].zdlk.forEach((val) => {
+                if (val.phoneNo.indexOf(string) !== -1 || val.name.indexOf(string) !== -1) {
+                  pushSwitch = true
+                }
+              })
+            }
+            if (this.tableDataTwo[i].cheCi.indexOf(string) !== -1 || pushSwitch) {
               if (this.wheelchairstate || this.stretcherstate) {
                 if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
                   this.tableData.push(this.tableDataTwo[i])
@@ -319,8 +401,25 @@ export default {
         }
       } else {
         if (this.search) {
+          let newData = this.search.split('')
+          let string = ''
+          newData.forEach((val) => {
+            if (!Number(val)) {
+              string += val.toUpperCase()
+            } else {
+              string += val
+            }
+          })
           for (let i = 0; i < this.tableDataTwo.length; i++) {
-            if (this.tableDataTwo[i].cheCi.indexOf(this.search) !== -1) {
+            let pushSwitch = false
+            if (this.tableDataTwo[i].zdlk.length) {
+              this.tableDataTwo[i].zdlk.forEach((val) => {
+                if (val.phoneNo.indexOf(string) !== -1 || val.name.indexOf(string) !== -1) {
+                  pushSwitch = true
+                }
+              })
+            }
+            if (this.tableDataTwo[i].cheCi.indexOf(string) !== -1 || pushSwitch) {
               if (this.keystate || this.stretcherstate) {
                 if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
                   this.tableData.push(this.tableDataTwo[i])
@@ -365,8 +464,25 @@ export default {
         }
       } else {
         if (this.search) {
+          let newData = this.search.split('')
+          let string = ''
+          newData.forEach((val) => {
+            if (!Number(val)) {
+              string += val.toUpperCase()
+            } else {
+              string += val
+            }
+          })
           for (let i = 0; i < this.tableDataTwo.length; i++) {
-            if (this.tableDataTwo[i].cheCi.indexOf(this.search) !== -1) {
+            let pushSwitch = false
+            if (this.tableDataTwo[i].zdlk.length) {
+              this.tableDataTwo[i].zdlk.forEach((val) => {
+                if (val.phoneNo.indexOf(string) !== -1 || val.name.indexOf(string) !== -1) {
+                  pushSwitch = true
+                }
+              })
+            }
+            if (this.tableDataTwo[i].cheCi.indexOf(string) !== -1 || pushSwitch) {
               if (this.wheelchairstate || this.keystate) {
                 if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
                   this.tableData.push(this.tableDataTwo[i])
@@ -401,8 +517,27 @@ export default {
       }
     },
     preparationFn () {
+      let newData = this.search.split('')
+      let string = ''
+      newData.forEach((val) => {
+        if (!Number(val)) {
+          string += val.toUpperCase()
+        } else {
+          string += val
+        }
+      })
       for (let i = 0; i < this.tableDataTwo.length; i++) {
-        if (this.tableDataTwo[i].cheCi.indexOf(this.search) !== -1) {
+        let pushSwitch = false
+        if (this.tableDataTwo[i].zdlk.length) {
+          this.tableDataTwo[i].zdlk.forEach((val) => {
+            if (val.phoneNo.indexOf(string) !== -1 || val.name.indexOf(string) !== -1) {
+              pushSwitch = true
+            }
+          })
+        }
+        if (this.tableDataTwo[i].cheCi.indexOf(string) !== -1 || pushSwitch) {
+          if (this.tableDataTwo[i].zhongdianNum > 0) {
+          }
           if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
             this.tableData.push(this.tableDataTwo[i])
             continue
@@ -492,7 +627,26 @@ export default {
       //   return `warning`
       // }
     },
-    spanFn () {
+    spanFn (row) {
+      this.axios.post(findStopOverStations(row.runId)).then((res) => {
+        if (res.data.code === 0) {
+          if (res.data.data.length) {
+            res.data.data.forEach((val) => {
+              val.arrivalTimeNum = this.fmtDate(val.arrivalTime, 2)
+              val.departureTimeNum = this.fmtDate(val.departureTime, 2)
+            })
+            this.rowCheCi = row.cheCi
+            this.channelData = res.data.data
+            this.popupSwitch = true
+            this.channelSwitch = true
+          } else {
+            this.$message({
+              message: '当前车次暂无数据',
+              type: 'warning'
+            })
+          }
+        }
+      })
     },
     homepageClick () {
     },
@@ -515,10 +669,13 @@ export default {
     closeAll () {
       this.popupSwitch = false
       this.behindSwitch = false
+      this.channelSwitch = false
       this.platformSwitch = false
       this.detailsSwitch = false
       this.trainSwitch = false
+      this.newPassengersSwitch = false
       this.passengersSwitch = false
+      this.keyPoints = true
     },
     cheCimodule (trainType) {
       if (trainType === 1) {
@@ -546,6 +703,7 @@ export default {
       if (this.loadingSwitch) {
         this.loading = true
       }
+      //  重点旅客
       let parameterData = !parameter ? '' : parameter
       this.axios.post(waitingRooms(parameterData)).then((response) => {
         // let switchBoer = false
@@ -566,6 +724,12 @@ export default {
             val.actualData = this.fmtDate(val.realDaoDaTime, 2)
             val.difference = this.difference(val.planDaoDaTime, val.realDaoDaTime)
           }
+          //  判断重点旅客
+          if (val.zdlk.length) {
+            val.zdlkSwith = true
+          } else {
+            val.zdlkSwith = false
+          }
           //  列车长姓名
           val.lczInfoData = []
           if (val.lczInfo) {
@@ -575,13 +739,17 @@ export default {
               val.lczInfoData.push(val.lczInfo)
             }
           }
+          //  重点旅客
+          if (this.keyPoints && val.zdlkNum > 0) {
+            this.programme(val, time)
+          }
           //  候车室
           val.waiting = this.waitingFn(val.hcs)
-          //
           if (this.searchSwitch) {
             let differenceValue = time - val.regulationsTime
             val.differenceValue = differenceValue < 0 ? Math.abs(differenceValue) : differenceValue
             // this.differenceValueArry.push(val.differenceValue)
+            val.differenceValue = val.difference > 0 ? Number(val.difference.substr(1)) * 60 + Number(val.differenceValue) : val.differenceValue
             if (!this.differenceValueArry.value) {
               this.differenceValueArry.value = val.differenceValue
               this.differenceValueArry.index = index
@@ -594,14 +762,15 @@ export default {
         // console.log('take time : ' + (new Date().getTime() - time) + 'ms')
         this.loading = false
         this.loadingSwitch = false
+        //
         let resData = response.data.data
+        this.tableDataTwo = resData
         if (!this.keystate && !this.wheelchairstate && !this.stretcherstate) {
           this.tableData = resData
         } else {
           this.tableData = []
           this.preparationtwoFn()
         }
-        this.tableDataTwo = resData
         //  拿到当前时间最近接近的值 将滚动条 滚到其对应索引位置
         if (this.searchSwitch) {
           this.rollingIndex = this.differenceValueArry.index
@@ -649,8 +818,10 @@ export default {
     },
     //  滚动位置
     rolling (index) {
+      // this.$refs.table.bodyWrapper.childNodes.childNodes[0].children[index].scrollTop = 0
+      // index = index !== 0 ? index - 1 : index
       this.$refs.table.bodyWrapper.scrollTop = (this.$refs.table.bodyWrapper.firstChild.clientHeight / this.tableData.length) * (index)
-      //  clearInterval(this.intervalFnD)
+      // clearInterval(this.intervalFnD)
     },
     trainDetailsFn (data) {
       let res = {
@@ -769,20 +940,19 @@ export default {
       })
     },
     intervalFn () {
-      // clearInterval()
-      this.updatedSwitch = true
       setInterval(() => {
+        this.updatedSwitch = true
         if (this.getDataSwitch && this.searchSwitch && this.moveOut) {
           //  再这里将 scrollTop 存入 scrollSwitch中
           // this.scrollSwitch.push(this.$refs.table.bodyWrapper.scrollTop)
           this.getData()
           this.findCurrentDay()
         }
-        // clearInterval(time)
         this.month = this.fmtDate((new Date()).getTime(), 3)
-      }, 10000)
+      }, 30000)
     },
     updateFn () {
+      this.keyPoints = true
       this.getData(this.search)
       this.findCurrentDay()
       this.closeFn()
@@ -871,7 +1041,6 @@ export default {
   watch: {
     search (data, datatwo) {
       if (data) {
-        console.log(data)
         //  处理一下大小写的问题
         let newData = data.split('')
         let string = ''
@@ -884,17 +1053,25 @@ export default {
         })
         this.tableData = []
         for (let i = 0; i < this.tableDataTwo.length; i++) {
-          if (this.tableDataTwo[i].cheCi.indexOf(string) !== -1) {
+          let pushSwitch = false
+          if (this.tableDataTwo[i].zdlk.length) {
+            this.tableDataTwo[i].zdlk.forEach((val) => {
+              if (val.phoneNo.indexOf(string) !== -1 || val.name.indexOf(string) !== -1) {
+                pushSwitch = true
+              }
+            })
+          }
+          if ((this.tableDataTwo[i].cheCi.indexOf(string) !== -1) || pushSwitch) {
             if (this.keystate || this.wheelchairstate || this.stretcherstate) {
               if (this.keystate && this.tableDataTwo[i].zhongdianNum > 0) {
                 this.tableData.push(this.tableDataTwo[i])
                 continue
               }
-              if (this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) {
+              if ((this.wheelchairstate && this.tableDataTwo[i].lunyiNum > 0) || pushSwitch) {
                 this.tableData.push(this.tableDataTwo[i])
                 continue
               }
-              if (this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) {
+              if ((this.stretcherstate && this.tableDataTwo[i].danjiaNum > 0) || pushSwitch) {
                 this.tableData.push(this.tableDataTwo[i])
                 continue
               }
@@ -914,17 +1091,9 @@ export default {
       }
     },
     popupSwitch (data) {
-      this.updatedSwitch = false
       if (data) {
         this.updatedSwitch = false
-      } else {
-        this.updatedSwitch = true
       }
-      // if (data) {
-      //   this.getDataSwitch = false
-      // } else {
-      //   this.getDataSwitch = true
-      // }
     },
     month () {
       this.findCurrentDay()
@@ -940,11 +1109,13 @@ export default {
     // this.checktoKen()
     this.getData()
     this.intervalFn()
-    this.homepageTitle = '北京西站12306服务台'
-    // this.homepageTitle = '北京西站036服务台'
+    // this.homepageTitle = '北京西站12306服务台'
+    this.homepageTitle = '北京西站036服务台'
     this.backtoPastText = '回到当前'
     this.searchText = '搜索'
     this.findCurrentDay()
+    this.audio = new Audio()
+    this.audio.src = this.srcMusic
   }
 }
 </script>
@@ -1134,6 +1305,8 @@ export default {
     background url("../../common/img/stretcher.png")
   .stretcherstateImgTwo
     background url("../../common/img/stretcherTwo.png")
+  .spantrainType
+    cursor pointer
 </style>
 <style>
   .el-table .warning {
