@@ -155,34 +155,34 @@
                     </div>
                   </template>
                 </el-table-column>
-                <!--<el-table-column-->
-                  <!--width="120"-->
-                  <!--prop="totalDepartNum"-->
-                  <!--label="上车人数">-->
-                <!--</el-table-column>-->
-                <!--<el-table-column-->
-                  <!--width="120"-->
-                  <!--prop="totalArriveNum"-->
-                  <!--label="下车人数">-->
-                <!--</el-table-column>-->
-                <!--<el-table-column-->
-                  <!--width="120"-->
-                  <!--prop="totalTransferNum"-->
-                  <!--label="中转人数">-->
-                <!--</el-table-column>-->
+                <el-table-column
+                  width="120"
+                  prop="totalDepartNum"
+                  label="上车人数">
+                </el-table-column>
+                <el-table-column
+                  width="120"
+                  prop="totalArriveNum"
+                  label="下车人数">
+                </el-table-column>
+                <el-table-column
+                  width="120"
+                  prop="totalTransferNum"
+                  label="中转人数">
+                </el-table-column>
 
-                <el-table-column
-                prop="zhongdianNum"
-                label="重点人员">
-                </el-table-column>
-                <el-table-column
-                prop="lunyiNum"
-                label="轮椅旅客">
-                </el-table-column>
-                <el-table-column
-                prop="danjiaNum"
-                label="担架旅客">
-                </el-table-column>
+                <!--<el-table-column-->
+                <!--prop="zhongdianNum"-->
+                <!--label="重点人员">-->
+                <!--</el-table-column>-->
+                <!--<el-table-column-->
+                <!--prop="lunyiNum"-->
+                <!--label="轮椅旅客">-->
+                <!--</el-table-column>-->
+                <!--<el-table-column-->
+                <!--prop="danjiaNum"-->
+                <!--label="担架旅客">-->
+                <!--</el-table-column>-->
 
                 <el-table-column
                   label="重点旅客总数">
@@ -725,8 +725,12 @@ export default {
             val.difference = this.difference(val.planDaoDaTime, val.realDaoDaTime)
           }
           //  判断重点旅客
-          if (val.zdlk.length) {
-            val.zdlkSwith = true
+          if (val.zdlk) {
+            if (val.zdlk.length) {
+              val.zdlkSwith = true
+            } else {
+              val.zdlkSwith = false
+            }
           } else {
             val.zdlkSwith = false
           }
@@ -1109,8 +1113,8 @@ export default {
     // this.checktoKen()
     this.getData()
     this.intervalFn()
-    // this.homepageTitle = '北京西站12306服务台'
-    this.homepageTitle = '北京西站036服务台'
+    this.homepageTitle = '北京西站12306服务台'
+    // this.homepageTitle = '北京西站036服务台'
     this.backtoPastText = '回到当前'
     this.searchText = '搜索'
     this.findCurrentDay()
